@@ -1,8 +1,8 @@
 #!/bin/bash
 #
-# GraphRAG PostgreSQL Database Backup Script
+# ilri PostgreSQL Database Backup Script
 # 
-# This script creates a compressed backup of the GraphRAG PostgreSQL database.
+# This script creates a compressed backup of the ilri PostgreSQL database.
 # It works both when the database is running in a Docker container or directly.
 #
 # Usage: ./backup_db.sh [backup_directory]
@@ -11,12 +11,12 @@
 set -e  # Exit immediately if a command exits with a non-zero status
 
 # Configuration
-DB_NAME="graphragdb"
-DB_USER="graphraguser"
-DB_PASSWORD="graphragpassword"
+DB_NAME="digest_api_ilri"
+DB_USER="ilri_user"
+DB_PASSWORD="ilri_password"
 DB_HOST="localhost"
-DB_PORT="5433"
-CONTAINER_NAME="writehere-graphrag-db-1"  # Default container name from docker-compose
+DB_PORT="5434"
+CONTAINER_NAME="db-ilri"  # Default container name from docker-compose
 DOCKER_RUNNING=false
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_DIR="${1:-./backups}"
@@ -38,7 +38,7 @@ check_docker() {
 # Function to perform backup using Docker
 backup_with_docker() {
   echo "🔄 Backing up database via Docker container..."
-  BACKUP_FILE="${BACKUP_DIR}/graphrag_backup_${TIMESTAMP}.sql"
+  BACKUP_FILE="${BACKUP_DIR}/ilri_backup_${TIMESTAMP}.sql"
   
   docker exec -t "$CONTAINER_NAME" pg_dump -U "$DB_USER" -d "$DB_NAME" > "$BACKUP_FILE"
   
@@ -56,7 +56,7 @@ backup_with_docker() {
 # Function to perform backup directly
 backup_directly() {
   echo "🔄 Backing up database directly..."
-  BACKUP_FILE="${BACKUP_DIR}/graphrag_backup_${TIMESTAMP}.sql"
+  BACKUP_FILE="${BACKUP_DIR}/ilri_backup_${TIMESTAMP}.sql"
   
   PGPASSWORD="$DB_PASSWORD" pg_dump -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" > "$BACKUP_FILE"
   
@@ -72,7 +72,7 @@ backup_directly() {
 }
 
 # Main execution
-echo "🔄 Starting GraphRAG database backup process..."
+echo "🔄 Starting ilri database backup process..."
 
 # Check for Docker container
 check_docker
@@ -92,5 +92,5 @@ else
 fi
 
 echo "✅ Backup process completed successfully!"
-echo "📁 Backup location: ${BACKUP_DIR}/graphrag_backup_${TIMESTAMP}.sql.gz"
+echo "📁 Backup location: ${BACKUP_DIR}/ilri_backup_${TIMESTAMP}.sql.gz"
 exit 0

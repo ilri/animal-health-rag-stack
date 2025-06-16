@@ -1,0 +1,76 @@
+services:
+  db-ilri:
+    image: pgvector/pgvector:pg15
+    environment:
+      POSTGRES_DB: digest_api_ilri
+      POSTGRES_USER: ilri_user
+      POSTGRES_PASSWORD: ilri_password
+    volumes:
+      - ./db/init.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - ./db/add_cache_table.sql:/docker-entrypoint-initdb.d/02-cache.sql
+      - ./db/add_feedback_table.sql:/docker-entrypoint-initdb.d/03-feedback.sql
+      - ./db/add_ragas_scores.sql:/docker-entrypoint-initdb.d/04-ragas.sql
+      - pgdata_ilri:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"  # Different port to avoid conflicts
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ilri_user -d digest_api_ilri"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api-service-ilri:
+    build: ./api_service
+    environment:
+      DATABASE_URL: postgresql://ilri_user:ilri_password@db-ilri:5432/digest_api_ilri
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ENABLE_MEMORY: ${ENABLE_MEMORY:-true}
+      MEMORY_SIMILARITY_THRESHOLD: ${MEMORY_SIMILARITY_THRESHOLD:-0.95}
+    ports:
+      - "8001:8000"  # Different port
+    depends_on:
+      db-ilri:
+        condition: service_healthy
+
+  ingestion-service-ilri:
+    build: ./ingestion_service
+    environment:
+      DATABASE_URL: postgresql://ilri_user:ilri_password@db-ilri:5432/digest_api_ilri
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CHUNK_SIZE: ${CHUNK_SIZE:-512}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP:-50}
+      MAX_WORKERS: ${MAX_WORKERS:-4}
+    volumes:
+      - ./pdf:/app/data  # Use your ILRI PDFs
+      - ./parser_cache:/app/parser_cache
+    depends_on:
+      db-ilri:
+        condition: service_healthy
+    ports:
+      - "5051:5050"  # Different port
+
+  frontend-ilri:
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80"  # Different port
+    depends_on:
+      - api-service-ilri
+    environment:
+      VITE_API_URL: http://localhost:8001
+    volumes:
+      - ./frontend/nginx.ilri.conf:/etc/nginx/conf.d/default.conf
+
+  grobid-ilri:
+    image: lfoppiano/grobid:latest-crf
+    ports:
+      - "8070:8070"
+    environment:
+      GROBID_SERVICE: "processFulltextDocument"
+    volumes:
+      - grobid_ilri_data:/opt/grobid
+volumes:
+  pgdata_ilri:
+  grobid_ilri_data:

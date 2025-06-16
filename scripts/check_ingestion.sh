@@ -4,10 +4,10 @@
 
 # Connection parameters (using the port we configured - 5433)
 PG_HOST="localhost"
-PG_PORT="5433"
-PG_DB="graphragdb"
-PG_USER="graphraguser"
-PG_PASS="graphragpassword"
+PG_PORT="5434"
+PG_DB="digest_api_ilri"
+PG_USER="ilri_user"
+PG_PASS="ilri_password"
 
 # Connect and run queries
 echo "Connecting to PostgreSQL to check ingestion progress..."
