@@ -16,7 +16,7 @@ DB_USER="graphraguser"
 DB_PASSWORD="graphragpassword"
 DB_HOST="localhost"
 DB_PORT="5433"
-CONTAINER_NAME="writehere-graphrag-db-1"  # Default container name from docker-compose
+CONTAINER_NAME="containerized-rag-starter-kit-db-1"  # Default container name from docker-compose
 DOCKER_RUNNING=false
 TEMP_DIR="/tmp/graphrag_restore"
 
@@ -83,10 +83,10 @@ restore_with_docker() {
   
   # Drop and recreate the database
   echo "🔄 Dropping existing database..."
-  docker exec -t "$CONTAINER_NAME" psql -U "$DB_USER" -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME';"
-  docker exec -t "$CONTAINER_NAME" psql -U "$DB_USER" -c "DROP DATABASE IF EXISTS $DB_NAME;"
+  docker exec -t "$CONTAINER_NAME" psql -U "$DB_USER" -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME';"
+  docker exec -t "$CONTAINER_NAME" psql -U "$DB_USER" -d postgres -c "DROP DATABASE IF EXISTS $DB_NAME;"
   echo "🔄 Creating new database..."
-  docker exec -t "$CONTAINER_NAME" psql -U "$DB_USER" -c "CREATE DATABASE $DB_NAME;"
+  docker exec -t "$CONTAINER_NAME" psql -U "$DB_USER" -d postgres -c "CREATE DATABASE $DB_NAME;"
   
   # Restore the database
   echo "🔄 Restoring database from backup..."
@@ -115,10 +115,10 @@ restore_directly() {
   
   # Drop and recreate the database
   echo "🔄 Dropping existing database..."
-  PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME';"
-  PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "DROP DATABASE IF EXISTS $DB_NAME;"
+  PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '$DB_NAME';"
+  PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "DROP DATABASE IF EXISTS $DB_NAME;"
   echo "🔄 Creating new database..."
-  PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "CREATE DATABASE $DB_NAME;"
+  PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d postgres -c "CREATE DATABASE $DB_NAME;"
   
   # Restore the database
   echo "🔄 Restoring database from backup..."

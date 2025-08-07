@@ -109,6 +109,28 @@ curl -X POST http://localhost:8000/query/simple -H "Content-Type: application/js
 ./scripts/scheduled_backup.sh [backup_directory] [retention_count]
 ```
 
+### Production Deployment
+
+```bash
+# Deploy to production with nginx and systemd
+sudo ./scripts/deploy_production.sh
+
+# Deploy with SSL setup (Let's Encrypt)
+sudo ./scripts/deploy_production.sh --setup-ssl
+
+# Manage the production service
+sudo systemctl status containerized-rag.service
+sudo systemctl restart containerized-rag.service
+sudo systemctl stop containerized-rag.service
+sudo systemctl start containerized-rag.service
+
+# View service logs
+sudo journalctl -u containerized-rag.service -f
+
+# Reload nginx after configuration changes
+sudo systemctl reload nginx
+```
+
 ## Architecture
 
 The application consists of five containerized services:
@@ -282,3 +304,25 @@ To customize conversation threads:
 1. Modify the `generate_thread_message` function in `api_service/app.py`
 2. Adjust the thread creation and message handling logic
 3. Change the retrieval enhancement parameters
+
+## Production Deployment
+
+The application can be deployed to production using the provided nginx configuration and systemd service:
+
+### Files
+- `deployment/nginx/ilri-archive.org` - Nginx site configuration
+- `deployment/systemd/containerized-rag.service` - Systemd service unit
+- `scripts/deploy_production.sh` - Automated deployment script
+
+### Deployment Steps
+1. Ensure Docker and nginx are installed on the server
+2. Run the deployment script: `sudo ./scripts/deploy_production.sh`
+3. Optionally run with `--setup-ssl` flag to configure self-signed SSL certificate
+4. Access the application at http://128.140.81.126
+
+### Production URLs
+- Main site: http://128.140.81.126
+- API endpoint: http://128.140.81.126/api/
+- Health check: http://128.140.81.126/health
+
+The systemd service ensures the Docker containers automatically start on boot and restart if they fail.

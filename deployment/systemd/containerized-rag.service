@@ -1,0 +1,31 @@
+[Unit]
+Description=Containerized RAG Starter Kit
+Documentation=https://github.com/poppingtonic/containerized-rag-starter-kit
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=simple
+WorkingDirectory=/home/muhia/src/containerized-rag-starter-kit
+ExecStartPre=/usr/bin/docker compose pull
+ExecStart=/usr/bin/docker compose up --remove-orphans
+ExecStop=/usr/bin/docker compose down
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=containerized-rag
+
+# Security settings
+NoNewPrivileges=true
+LimitNOFILE=65536
+
+# Environment variables
+Environment="PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+# User to run the service (adjust as needed)
+User=muhia
+Group=docker
+
+[Install]
+WantedBy=multi-user.target

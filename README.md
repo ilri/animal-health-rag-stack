@@ -261,6 +261,118 @@ writehere-graphrag/
 - Adjust the graph processing interval in `graphrag_processor/app.py`
 - Change the UI appearance in `frontend/src/assets/main.css`
 
+## ILRI deployment
+
+This setup runs only the database, ingestion service, API service, and GROBID. The frontend runs outside Docker with its own NGINX and optional systemd unit.
+
+### Services (ILRI compose)
+- **Database**: `db-ilri` (PostgreSQL + pgvector) on port 5434
+- **GROBID**: `grobid-ilri` on port 8070
+- **API**: `api-service-ilri` on port 8001
+- **Ingestion**: `ingestion-service-ilri` on port 5051
+- Frontend is not run in Docker for ILRI; run it outside as described below
+
+Compose file: `docker-compose.ilri.yml`
+
+### Start ILRI stack (no frontend in Docker)
+```bash
+# Expects OPENAI_API_KEY in environment (and optionally ANTHROPIC_API_KEY)
+export OPENAI_API_KEY=...  # required
+export ANTHROPIC_API_KEY=...  # optional
+
+./run-ilri-instance.sh
+
+# Check status / logs
+docker compose -f docker-compose.ilri.yml ps
+docker compose -f docker-compose.ilri.yml logs -f
+```
+
+### GROBID integration (required for ingestion)
+- Ingestion uses `grobid-client` with config mounted at `/app/grobid_config.json`
+- ILRI-specific config points to the in-network GROBID service: `ingestion_service/grobid_config.ilri.json`
+- The ILRI compose mounts this file and ensures `ingestion-service-ilri` depends on `grobid-ilri`
+
+### Frontend outside Docker
+You have two options:
+
+1) Development (Vite dev server)
+- Run:
+  ```bash
+  cd frontend
+  yarn
+  yarn dev  # defaults to http://localhost:5173
+  ```
+- Update NGINX reverse proxy to route the site to Vite and API to the ILRI API:
+  - File: `deployment/nginx/containerized-rag`
+    - Change frontend proxy target to `http://localhost:5173`
+    - Change API proxy target to `http://localhost:8001/`
+
+2) Production (build and serve via system NGINX)
+- Build static assets:
+  ```bash
+  cd frontend
+  yarn
+  yarn build  # outputs to ./dist
+  ```
+- Configure your NGINX server block to serve `frontend/dist` as root and proxy `/api/` to `http://localhost:8001/`.
+  Example:
+  ```nginx
+  server {
+    listen 80;
+    server_name ilri.example.org;
+
+    root /home/muhia/src/containerized-rag-starter-kit/frontend/dist;
+    index index.html;
+
+    location /api/ {
+      proxy_pass http://localhost:8001/;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_read_timeout 300s;
+    }
+
+    location / {
+      try_files $uri $uri/ /index.html;
+    }
+  }
+  ```
+- Optionally add a systemd unit for NGINX or your deployment routine per your environment.
+
+### ILRI branding (frontend)
+Update the name and branding in the frontend:
+- Change page title in `frontend/index.html`:
+  ```startLine:endLine:frontend/index.html
+  <title>AI Search</title>
+  ```
+  to e.g. `ILRI AI Search`.
+- Change nav brand in `frontend/src/App.vue`:
+  ```startLine:endLine:frontend/src/App.vue
+  <h1>AI Search</h1>
+  ```
+  to e.g. `ILRI AI Search`.
+- Add ILRI logo and colors in `frontend/src/assets/main.css` or component styles as desired.
+
+### Dev proxy (optional)
+If using Vite dev server, point `/api` proxy to the ILRI API port:
+- File: `frontend/vite.config.js`
+  ```js
+  export default defineConfig({
+    server: {
+      proxy: {
+        '/api': { target: 'http://localhost:8001', changeOrigin: true, rewrite: p => p.replace(/^\/api/, '') }
+      }
+    }
+  })
+  ```
+
+### Endpoints
+- Frontend: via external NGINX (per config above)
+- API: `http://localhost:8001`
+- Health: `http://localhost:8001/health`
+- GROBID UI: `http://localhost:8070`
+
 ## License
 
 [MIT License](LICENSE)

@@ -44,9 +44,12 @@ services:
     volumes:
       - ./pdf:/app/data  # Use your ILRI PDFs
       - ./parser_cache:/app/parser_cache
+      - ./ingestion_service/grobid_config.ilri.json:/app/grobid_config.json:ro
     depends_on:
       db-ilri:
         condition: service_healthy
+      grobid-ilri:
+        condition: service_started
     ports:
       - "5051:5050"  # Different port
 
