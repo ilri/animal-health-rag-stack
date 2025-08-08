@@ -5,7 +5,7 @@
         <i class="fa-regular fa-chart-line"></i> 
         Automatic Quality Metrics
         <span class="quality-badge" :class="qualityClass">
-          {{ interpretation.quality_level || 'Evaluating...' }}
+          {{ interpretation?.quality_level || 'Evaluating...' }}
         </span>
       </h3>
       <button class="toggle-btn">
