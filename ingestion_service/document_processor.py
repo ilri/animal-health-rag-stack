@@ -12,6 +12,7 @@ from file_tracker import is_file_processed, mark_file_processed, log_processing_
 from database import check_document_exists, store_chunks_and_embeddings
 from embeddings import create_embeddings_batch
 from academic_processor import is_academic_paper, process_academic_paper
+from evaluators import ChunkQualityEvaluator
 
 
 def process_document(file_path):
@@ -114,11 +115,20 @@ def process_document(file_path):
             print(f"No valid chunks for {file_name}, skipping")
             return
         
+        # Evaluate chunks quality
+        evaluator = ChunkQualityEvaluator()
+        evaluations = [evaluator.evaluate_chunk(text) for text in chunk_texts]
+        
         # Generate embeddings for all chunks
         embeddings = create_embeddings_batch(chunk_texts)
         
-        # Store chunks and embeddings in database
-        stored_count = store_chunks_and_embeddings(chunk_texts, embeddings, metadata)
+        # Store chunks, embeddings and evaluations in database
+        stored_count = store_chunks_and_embeddings(
+            chunk_texts,
+            embeddings,
+            metadata,
+            chunk_evaluations=evaluations
+        )
         
         print(f"Successfully processed {file_name} - Created {stored_count} chunks with embeddings")
         

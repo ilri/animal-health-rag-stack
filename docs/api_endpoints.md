@@ -405,6 +405,19 @@ Manually trigger document ingestion.
 }
 ```
 
+## Ingestion Quality
+
+- GET `/ingestion/quality/{document_id}`: Quality metrics for a specific document based on chunk evaluations
+- GET `/ingestion/quality/summary`: Aggregate ingestion quality metrics
+
+## Retrieval Evaluation
+- GET `/retrieval/eval/summary`: Aggregate retrieval relevance metrics (overall precision, precision@5/10)
+- GET `/retrieval/eval/query/{query_id}`: Per-query relevance judgments and ranks
+
+Notes:
+- Vector-based judgments are always recorded for new queries.
+- LLM-based judgments are optional per request or can be toggled by default via `USE_LLM_RETRIEVAL_EVAL_DEFAULT` env var.
+
 ## Error Responses
 
 All endpoints may return error responses in the following format:
