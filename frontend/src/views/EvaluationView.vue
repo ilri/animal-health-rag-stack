@@ -131,7 +131,7 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import RetrievalMetrics from '@/components/RetrievalMetrics.vue'
+import RetrievalMetrics from '../components/RetrievalMetrics.vue'
 
 export default {
   name: 'EvaluationView',
