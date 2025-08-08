@@ -12,12 +12,10 @@
     "@fortawesome/free-regular-svg-icons": "^7.0.0",
     "@fortawesome/free-solid-svg-icons": "^7.0.0",
     "@fortawesome/vue-fontawesome": "^3.1.1",
-    "axios": "^1.5.1",
     "marked": "^9.0.3",
     "vue": "^3.3.4",
     "vue-router": "^4.2.4",
-    "vuex": "^4.1.0",
-    "yarn": "^1.22.22"
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.3.4",
