@@ -8,16 +8,16 @@
         
         <div class="nav-links">
           <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">
-            <i class="fa-regular fa-search"></i> Search
+            <FontAwesomeIcon :icon="faMagnifyingGlass" /> Search
           </router-link>
           <router-link to="/cache" class="nav-link" :class="{ active: $route.path === '/cache' }">
-            <i class="fa-regular fa-database"></i> Cache
+            <FontAwesomeIcon :icon="faDatabase" /> Cache
           </router-link>
           <router-link to="/evaluation" class="nav-link" :class="{ active: $route.path === '/evaluation' }">
-            <i class="fa-regular fa-chart-bar"></i> Evaluation
+            <FontAwesomeIcon :icon="faChartBar" /> Evaluation
           </router-link>
           <router-link to="/export" class="nav-link" :class="{ active: $route.path === '/export' }">
-            <i class="fa-regular fa-download"></i> Export
+            <FontAwesomeIcon :icon="faDownload" /> Export
           </router-link>
         </div>
       </div>
@@ -28,6 +28,12 @@
     </main>
   </div>
 </template>
+
+<script setup>
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { faMagnifyingGlass, faDatabase, faDownload } from '@fortawesome/free-solid-svg-icons'
+  import { faChartBar } from '@fortawesome/free-regular-svg-icons'
+</script>
 
 <script>
 export default {
@@ -150,18 +156,4 @@ textarea {
   font-family: inherit;
   font-size: 14px;
 }
-
-/* Font Awesome icons fallback */
-.fas::before {
-  font-family: monospace;
-  font-weight: normal;
-}
-
-.fa-search::before { content: "🔍"; }
-.fa-database::before { content: "💾"; }
-.fa-chart-bar::before { content: "📊"; }
-.fa-download::before { content: "📥"; }
-.fa-star::before { content: "⭐"; }
-.fa-spinner::before { content: "⏳"; }
-.fa-times::before { content: "✕"; }
 </style>

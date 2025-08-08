@@ -6,7 +6,7 @@
       <div class="modal-header">
         <h3>Create Conversation Thread</h3>
         <button class="close-btn" @click="$emit('close')">
-          <i class="fa-regular fa-times"></i>
+          <FontAwesomeIcon :icon="faXmark" />
         </button>
       </div>
       
@@ -48,6 +48,11 @@
     </div>
   </div>
 </template>
+
+<script setup>
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { faXmark } from '@fortawesome/free-solid-svg-icons'
+</script>
 
 <script>
 export default {

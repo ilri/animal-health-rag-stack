@@ -9,7 +9,8 @@
           title="Favorite this answer"
         >
           <span class="icon">
-            <i :class="isFavorite ? 'fa-regular fa-star' : 'far fa-star'"></i>
+            <FontAwesomeIcon :icon="farStar" v-if="!isFavorite" />
+            <FontAwesomeIcon :icon="faStar" v-if="isFavorite" />
           </span>
         </button>
         
@@ -20,7 +21,7 @@
           :title="getThreadButtonTitle()"
         >
           <span class="icon">
-            <i class="fa-regular fa-comments"></i>
+            <FontAwesomeIcon :icon="faComments" />
           </span>
         </button>
         
@@ -31,14 +32,14 @@
           title="Provide feedback"
         >
           <span class="icon">
-            <i class="fa-regular fa-comment-dots"></i>
+            <FontAwesomeIcon :icon="faCommentDots" />
           </span>
         </button>
       </div>
       
       <div class="memory-indicator" v-if="fromMemory">
         <span class="from-memory-badge" title="Answer retrieved from memory">
-          <i class="fa-regular fa-memory"></i> From memory
+          <FontAwesomeIcon :icon="faMemory" /> From memory
         </span>
       </div>
     </div>
@@ -57,7 +58,7 @@
               :class="{ 'active': rating >= i }"
               class="star"
             >
-              <i class="fa-regular fa-star"></i>
+              <FontAwesomeIcon :icon="faStar" />
             </span>
           </div>
         </div>
@@ -91,6 +92,12 @@
     </div>
   </div>
 </template>
+
+<script setup>
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { faStar, faComments, faCommentDots, faMemory } from '@fortawesome/free-solid-svg-icons'
+  import { faStar as farStar, faCalendarDays } from '@fortawesome/free-regular-svg-icons'
+</script>
 
 <script>
 export default {

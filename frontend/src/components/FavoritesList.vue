@@ -9,13 +9,14 @@
           :disabled="isLoading"
           title="Refresh favorites"
         >
-          <i :class="isLoading ? 'fa-regular fa-sync fa-spin' : 'fa-regular fa-sync'"></i>
+          <FontAwesomeIcon :icon="faRotate" v-if="!isLoading" />
+          <FontAwesomeIcon :icon="faRotate" v-if="isLoading" spin />
         </button>
       </div>
     </div>
     
     <div class="search-bar">
-      <i class="fa-regular fa-search search-icon"></i>
+      <FontAwesomeIcon class="search-icon" :icon="faMagnifyingGlass" />
       <input 
         type="text" 
         v-model="searchQuery" 
@@ -26,7 +27,7 @@
     
     <div class="favorites-container" v-if="!isLoading">
       <div v-if="filteredFavorites.length === 0" class="no-favorites">
-        <i class="fa-regular fa-star no-favorites-icon"></i>
+        <FontAwesomeIcon class="no-favorites-icon" :icon="farStar" />
         <p>No favorites found</p>
         <p class="no-favorites-hint" v-if="searchQuery">Try a different search term</p>
         <p class="no-favorites-hint" v-else>Questions you star will appear here</p>
@@ -57,7 +58,7 @@
                     :key="i"
                     :class="[
                       'fas', 
-                      i <= favorite.rating ? 'fa-star' : 'fa-star-o',
+                      i <= favorite.rating ? '★' : '☆',
                       i <= favorite.rating ? 'filled' : ''
                     ]"
                   ></i>
@@ -65,7 +66,7 @@
               </div>
               
               <div class="saved-date">
-                <i class="fa-regular fa-calendar-alt"></i>
+                <FontAwesomeIcon :icon="faCalendarDays" />
                 {{ formatDate(favorite.created_at) }}
               </div>
             </div>
@@ -77,7 +78,7 @@
                 @click.stop="createThread(favorite)"
                 title="Create conversation thread"
               >
-                <i class="fa-regular fa-comments"></i>
+                <FontAwesomeIcon :icon="faComments" />
                 Create Thread
               </button>
               
@@ -87,7 +88,7 @@
                 @click.stop="$emit('view-thread', favorite.thread_id)"
                 title="View conversation thread"
               >
-                <i class="fa-regular fa-comments"></i>
+                <FontAwesomeIcon :icon="faComments" />
                 View Thread
               </button>
             </div>
@@ -98,7 +99,7 @@
     
     <div class="favorites-loading" v-else>
       <div class="loading-spinner">
-        <i class="fa-regular fa-spinner fa-spin"></i>
+        <FontAwesomeIcon :icon="faSpinner" spin />
       </div>
       <p>Loading favorites...</p>
     </div>
@@ -110,7 +111,7 @@
         <div class="dialog-header">
           <h3>Create Conversation Thread</h3>
           <button class="close-btn" @click="showThreadDialog = false">
-            <i class="fa-regular fa-times"></i>
+            <FontAwesomeIcon :icon="faXmark" />
           </button>
         </div>
         
@@ -146,6 +147,12 @@
     </div>
   </div>
 </template>
+
+<script setup>
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { faRotate, faMagnifyingGlass, faComments, faXmark } from '@fortawesome/free-solid-svg-icons'
+  import { faStar as farStar, faCalendarDays } from '@fortawesome/free-regular-svg-icons'
+</script>
 
 <script>
 import { marked } from 'marked';

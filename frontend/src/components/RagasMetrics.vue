@@ -2,20 +2,20 @@
   <div class="ragas-metrics">
     <div class="metrics-header" @click="toggleExpanded">
       <h3>
-        <i class="fa-regular fa-chart-line"></i> 
+        <FontAwesomeIcon :icon="faChartLine" />
         Automatic Quality Metrics
         <span class="quality-badge" :class="qualityClass">
           {{ interpretation?.quality_level || 'Evaluating...' }}
         </span>
       </h3>
       <button class="toggle-btn">
-        <i class="fas" :class="expanded ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+        <FontAwesomeIcon :icon="expanded ? 'faChevronUp' : 'faChevronDown'"/>
       </button>
     </div>
 
     <div v-if="expanded" class="metrics-content">
       <div v-if="loading" class="loading">
-        <i class="fa-regular fa-spinner fa-spin"></i> Evaluating response quality...
+        <FontAwesomeIcon :icon="faRotate" spin /> Evaluating response quality...
       </div>
 
       <div v-else-if="error" class="error-message">
@@ -49,7 +49,7 @@
       <!-- Interpretation Section -->
       <div v-if="interpretation && !loading" class="interpretation">
         <div v-if="interpretation.strengths.length > 0" class="strengths">
-          <h4><i class="fa-regular fa-check-circle"></i> Strengths</h4>
+          <h4><FontAwesomeIcon :icon="faCircleCheck"/> Strengths</h4>
           <ul>
             <li v-for="(strength, index) in interpretation.strengths" :key="index">
               {{ strength }}
@@ -58,7 +58,7 @@
         </div>
 
         <div v-if="interpretation.weaknesses.length > 0" class="weaknesses">
-          <h4><i class="fa-regular fa-exclamation-circle"></i> Areas for Improvement</h4>
+          <h4><FontAwesomeIcon :icon="faCircleExclamation"/> Areas for Improvement</h4>
           <ul>
             <li v-for="(weakness, index) in interpretation.weaknesses" :key="index">
               {{ weakness }}
@@ -67,7 +67,7 @@
         </div>
 
         <div v-if="interpretation.recommendations.length > 0" class="recommendations">
-          <h4><i class="fa-regular fa-lightbulb"></i> Recommendations</h4>
+          <h4><FontAwesomeIcon :icon="faLightbulb"/> Recommendations</h4>
           <ul>
             <li v-for="(rec, index) in interpretation.recommendations" :key="index">
               {{ rec }}
@@ -95,6 +95,11 @@
     </div>
   </div>
 </template>
+
+<script setup>
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { faChartLine, faRotate, faChevronUp, faChevronDown, faCircleCheck, faCircleExclamation, faLightbulb } from '@fortawesome/free-solid-svg-icons'
+</script>
 
 <script>
 import { ref, computed, watch, onMounted } from 'vue'
@@ -424,7 +429,7 @@ export default {
 
 .manual-rating-prompt p {
   margin: 0 0 15px 0;
-  color: #333;
+  color: #333;is
 }
 
 .rating-stars {
@@ -465,13 +470,4 @@ export default {
   border-radius: 5px;
   font-size: 14px;
 }
-
-/* Icon fallbacks */
-.fa-chart-line::before { content: "📈"; }
-.fa-chevron-up::before { content: "⌃"; }
-.fa-chevron-down::before { content: "⌄"; }
-.fa-spinner::before { content: "⏳"; }
-.fa-check-circle::before { content: "✅"; }
-.fa-exclamation-circle::before { content: "⚠️"; }
-.fa-lightbulb::before { content: "💡"; }
 </style>

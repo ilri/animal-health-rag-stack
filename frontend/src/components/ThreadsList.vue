@@ -9,13 +9,14 @@
           :disabled="isLoading"
           title="Refresh threads"
         >
-          <i :class="isLoading ? 'fa-regular fa-sync fa-spin' : 'fa-regular fa-sync'"></i>
+          <FontAwesomeIcon :icon="faRotate" v-if="!isLoading" />
+          <FontAwesomeIcon :icon="faRotate" v-if="isLoading" spin />
         </button>
       </div>
     </div>
     
     <div class="search-bar">
-      <i class="fa-regular fa-search search-icon"></i>
+      <FontAwesomeIcon class="search-icon" :icon="faMagnifyingGlass" />
       <input 
         type="text" 
         v-model="searchQuery" 
@@ -26,7 +27,7 @@
     
     <div class="threads-container" v-if="!isLoading">
       <div v-if="filteredThreads.length === 0" class="no-threads">
-        <i class="fa-regular fa-comment-slash no-threads-icon"></i>
+        <FontAwesomeIcon class="no-threads-icon" :icon="faCommentSlash" />
         <p>No conversations found</p>
         <p class="no-threads-hint" v-if="searchQuery">Try a different search term</p>
         <p class="no-threads-hint" v-else>Conversations you start will appear here</p>
@@ -49,12 +50,12 @@
             
             <div class="thread-details">
               <div class="message-count">
-                <i class="fa-regular fa-comment-dots"></i>
+                <FontAwesomeIcon :icon="faCommentDots" />
                 {{ thread.message_count }} messages
               </div>
               
               <div class="created-date">
-                <i class="fa-regular fa-calendar-alt"></i>
+                <FontAwesomeIcon :icon="faCalendarDays" />
                 {{ formatDate(thread.created_at) }}
               </div>
             </div>
@@ -65,12 +66,18 @@
     
     <div class="threads-loading" v-else>
       <div class="loading-spinner">
-        <i class="fa-regular fa-spinner fa-spin"></i>
+        <FontAwesomeIcon :icon="faRotate" v-if="isLoading" spin />
       </div>
       <p>Loading conversations...</p>
     </div>
   </div>
 </template>
+
+<script setup>
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { faRotate, faMagnifyingGlass, faCommentSlash, faCommentDots } from '@fortawesome/free-solid-svg-icons'
+  import { faCalendarDays } from '@fortawesome/free-regular-svg-icons'
+</script>
 
 <script>
 export default {
