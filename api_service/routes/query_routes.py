@@ -8,7 +8,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from models import ChunkResponse, EntityResponse, CommunityResponse
-from services.qa_service import QAService
+from services.qa_service import QAService, RetrievalEvaluator
 from services.query_service import QueryService
 from services.memory_service import MemoryService
 from services.graph_service import GraphService
@@ -19,6 +19,7 @@ qa_service = QAService()
 query_service = QueryService()
 memory_service = MemoryService()
 graph_service = GraphService()
+retrieval_evaluator = RetrievalEvaluator()
 
 class Query(BaseModel):
     query: str
@@ -27,6 +28,7 @@ class Query(BaseModel):
     use_amplification: bool = True
     use_smart_selection: bool = True
     use_haiku_verification: bool = False
+    use_llm_retrieval_eval: Optional[bool] = None
 
 class SubQuestionResponse(BaseModel):
     question: str
@@ -112,6 +114,22 @@ async def process_query(query_data: Query):
             entities[:10] if entities else [], 
             communities[:5] if communities else []
         )
+        
+        # Persist retrieval evaluations (vector-only for now)
+        try:
+            vector_eval = retrieval_evaluator.evaluate_vector_retrieval(query_data.query, max_results=query_data.max_results)
+            judgments = vector_eval.get("judgments", [])
+            if memory_id is not None and judgments:
+                retrieval_evaluator.persist_retrieval_evaluations(memory_id, judgments)
+            # Optionally run LLM-based retrieval judgments
+            use_llm = query_data.use_llm_retrieval_eval if query_data.use_llm_retrieval_eval is not None else Config.USE_LLM_RETRIEVAL_EVAL_DEFAULT
+            if use_llm:
+                llm_judgments = await retrieval_evaluator.evaluate_llm_retrieval(query_data.query, all_chunks[:query_data.max_results])
+                if memory_id is not None and llm_judgments:
+                    retrieval_evaluator.persist_retrieval_evaluations(memory_id, llm_judgments)
+        except Exception as e:
+            # Non-fatal, continue request
+            print(f"Retrieval evaluation persistence error: {e}")
         
         # Calculate processing time
         processing_time = time.time() - start_time

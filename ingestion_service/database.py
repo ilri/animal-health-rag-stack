@@ -25,13 +25,14 @@ def check_document_exists(content_hash):
             return cursor.fetchone()[0] > 0
 
 
-def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata):
+def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata, *, chunk_evaluations=None):
     """Store document chunks and their embeddings in the database.
     
     Args:
         chunks_data: List of text chunks
         embeddings_data: List of embeddings corresponding to chunks
         metadata: Document metadata dictionary
+        chunk_evaluations: Optional list of dicts with per-chunk evaluation results
     
     Returns:
         Number of chunks stored
@@ -46,7 +47,7 @@ def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata):
                 # Skip empty chunks
                 if not clean_text.strip():
                     continue
-                    
+                
                 cursor.execute(
                     "INSERT INTO document_chunks (text_content, source_metadata) VALUES (%s, %s) RETURNING id",
                     (clean_text, json.dumps(metadata))
@@ -66,6 +67,24 @@ def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata):
                     cursor,
                     "INSERT INTO chunk_embeddings (chunk_id, embedding_vector) VALUES %s",
                     [(chunk_id, f"{emb}") for chunk_id, emb in embedding_values]
+                )
+            
+            # Store chunk evaluations if provided
+            if chunk_evaluations:
+                # Expect one evaluation per resulting chunk id
+                rows = []
+                for chunk_id, eval_result in zip(chunk_ids, chunk_evaluations):
+                    rows.append((
+                        chunk_id,
+                        eval_result.get('criteria', 'chunk_quality'),
+                        int(eval_result.get('score', 0)),
+                        eval_result.get('explanation'),
+                        eval_result.get('model_used', 'heuristic:v0')
+                    ))
+                execute_values(
+                    cursor,
+                    "INSERT INTO chunk_evaluations (chunk_id, evaluation_criteria, score, explanation, model_used) VALUES %s",
+                    rows
                 )
             
             conn.commit()

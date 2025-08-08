@@ -5,7 +5,7 @@
         <FontAwesomeIcon :icon="faChartLine" />
         Automatic Quality Metrics
         <span class="quality-badge" :class="qualityClass">
-          {{ interpretation.quality_level || 'Evaluating...' }}
+          {{ interpretation?.quality_level || 'Evaluating...' }}
         </span>
       </h3>
       <button class="toggle-btn">
@@ -429,7 +429,7 @@ export default {
 
 .manual-rating-prompt p {
   margin: 0 0 15px 0;
-  color: #333;
+  color: #333;is
 }
 
 .rating-stars {

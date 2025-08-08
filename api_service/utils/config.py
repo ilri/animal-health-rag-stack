@@ -18,3 +18,7 @@ class Config:
     VERIFICATION_THRESHOLD = float(os.environ.get("VERIFICATION_THRESHOLD", "0.7"))
     MAX_SUBQUESTIONS = int(os.environ.get("MAX_SUBQUESTIONS", "4"))
     AMPLIFICATION_MIN_CONTEXT_LENGTH = int(os.environ.get("AMPLIFICATION_MIN_CONTEXT_LENGTH", "500"))
+
+    # Retrieval evaluation config
+    USE_LLM_RETRIEVAL_EVAL_DEFAULT = os.environ.get("USE_LLM_RETRIEVAL_EVAL_DEFAULT", "false").lower() == "true"
+    LLM_RETRIEVAL_THRESHOLD = float(os.environ.get("LLM_RETRIEVAL_THRESHOLD", "0.5"))
