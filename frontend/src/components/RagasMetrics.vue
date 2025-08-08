@@ -429,7 +429,7 @@ export default {
 
 .manual-rating-prompt p {
   margin: 0 0 15px 0;
-  color: #333;is
+  color: #333;
 }
 
 .rating-stars {
