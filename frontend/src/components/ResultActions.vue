@@ -9,7 +9,7 @@
           title="Favorite this answer"
         >
           <span class="icon">
-            <i :class="isFavorite ? 'fas fa-star' : 'far fa-star'"></i>
+            <i :class="isFavorite ? 'fa-regular fa-star' : 'far fa-star'"></i>
           </span>
         </button>
         
@@ -20,7 +20,7 @@
           :title="getThreadButtonTitle()"
         >
           <span class="icon">
-            <i class="fas fa-comments"></i>
+            <i class="fa-regular fa-comments"></i>
           </span>
         </button>
         
@@ -31,14 +31,14 @@
           title="Provide feedback"
         >
           <span class="icon">
-            <i class="fas fa-comment-dots"></i>
+            <i class="fa-regular fa-comment-dots"></i>
           </span>
         </button>
       </div>
       
       <div class="memory-indicator" v-if="fromMemory">
         <span class="from-memory-badge" title="Answer retrieved from memory">
-          <i class="fas fa-memory"></i> From memory
+          <i class="fa-regular fa-memory"></i> From memory
         </span>
       </div>
     </div>
@@ -57,7 +57,7 @@
               :class="{ 'active': rating >= i }"
               class="star"
             >
-              <i class="fas fa-star"></i>
+              <i class="fa-regular fa-star"></i>
             </span>
           </div>
         </div>

@@ -11,11 +11,11 @@
       <div v-if="!activeView || activeView === 'search'" class="search-container">
         <div class="view-buttons">
           <button v-if="favorites.length > 0" class="view-favorites-btn" @click="activeView = 'favorites'">
-            <i class="fas fa-star"></i> View Favorites
+            <i class="fa-regular fa-star"></i> View Favorites
           </button>
           
           <button v-if="threads.length > 0" class="view-threads-btn" @click="activeView = 'threads'">
-            <i class="fas fa-comments"></i> View Conversations
+            <i class="fa-regular fa-comments"></i> View Conversations
           </button>
           
           <button class="toggle-progress-btn" @click="toggleIngestionProgress">
@@ -41,16 +41,16 @@
             :disabled="isLoading || !query.trim()"
           >
             <span v-if="isLoading">
-              <i class="fas fa-spinner fa-spin"></i>
+              <i class="fa-regular fa-spinner fa-spin"></i>
             </span>
             <span v-else>
-              <i class="fas fa-search"></i>
+              <i class="fa-regular fa-search"></i>
             </span>
           </button>
         </div>
 
         <div v-if="error" class="error-message">
-          <i class="fas fa-exclamation-circle"></i>
+          <i class="fa-regular fa-exclamation-circle"></i>
           <span>{{ error }}</span>
         </div>
 

@@ -78,7 +78,7 @@
         </div>
       </div>
 
-      <!-- RAGAS Metrics Summary -->
+      <!-- Automatic Quality Metrics (RAGAS) -->
       <div class="metrics-section">
         <h2>Automatic Quality Metrics (RAGAS)</h2>
         <div v-if="ragasMetrics" class="ragas-summary">
@@ -107,6 +107,11 @@
         </div>
       </div>
 
+      <!-- Retrieval Metrics -->
+      <div class="metrics-section">
+        <RetrievalMetrics />
+      </div>
+
       <!-- Actions -->
       <div class="metrics-section">
         <h2>Export Options</h2>
@@ -126,9 +131,11 @@
 <script>
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import RetrievalMetrics from '@/components/RetrievalMetrics.vue'
 
 export default {
   name: 'EvaluationView',
+  components: { RetrievalMetrics },
   setup() {
     const router = useRouter()
     const metrics = ref(null)

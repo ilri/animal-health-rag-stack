@@ -9,13 +9,13 @@
           :disabled="isLoading"
           title="Refresh threads"
         >
-          <i :class="isLoading ? 'fas fa-sync fa-spin' : 'fas fa-sync'"></i>
+          <i :class="isLoading ? 'fa-regular fa-sync fa-spin' : 'fa-regular fa-sync'"></i>
         </button>
       </div>
     </div>
     
     <div class="search-bar">
-      <i class="fas fa-search search-icon"></i>
+      <i class="fa-regular fa-search search-icon"></i>
       <input 
         type="text" 
         v-model="searchQuery" 
@@ -26,7 +26,7 @@
     
     <div class="threads-container" v-if="!isLoading">
       <div v-if="filteredThreads.length === 0" class="no-threads">
-        <i class="fas fa-comment-slash no-threads-icon"></i>
+        <i class="fa-regular fa-comment-slash no-threads-icon"></i>
         <p>No conversations found</p>
         <p class="no-threads-hint" v-if="searchQuery">Try a different search term</p>
         <p class="no-threads-hint" v-else>Conversations you start will appear here</p>
@@ -49,12 +49,12 @@
             
             <div class="thread-details">
               <div class="message-count">
-                <i class="fas fa-comment-dots"></i>
+                <i class="fa-regular fa-comment-dots"></i>
                 {{ thread.message_count }} messages
               </div>
               
               <div class="created-date">
-                <i class="fas fa-calendar-alt"></i>
+                <i class="fa-regular fa-calendar-alt"></i>
                 {{ formatDate(thread.created_at) }}
               </div>
             </div>
@@ -65,7 +65,7 @@
     
     <div class="threads-loading" v-else>
       <div class="loading-spinner">
-        <i class="fas fa-spinner fa-spin"></i>
+        <i class="fa-regular fa-spinner fa-spin"></i>
       </div>
       <p>Loading conversations...</p>
     </div>

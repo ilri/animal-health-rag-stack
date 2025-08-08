@@ -9,13 +9,13 @@
           :disabled="isLoading"
           title="Refresh favorites"
         >
-          <i :class="isLoading ? 'fas fa-sync fa-spin' : 'fas fa-sync'"></i>
+          <i :class="isLoading ? 'fa-regular fa-sync fa-spin' : 'fa-regular fa-sync'"></i>
         </button>
       </div>
     </div>
     
     <div class="search-bar">
-      <i class="fas fa-search search-icon"></i>
+      <i class="fa-regular fa-search search-icon"></i>
       <input 
         type="text" 
         v-model="searchQuery" 
@@ -26,7 +26,7 @@
     
     <div class="favorites-container" v-if="!isLoading">
       <div v-if="filteredFavorites.length === 0" class="no-favorites">
-        <i class="fas fa-star no-favorites-icon"></i>
+        <i class="fa-regular fa-star no-favorites-icon"></i>
         <p>No favorites found</p>
         <p class="no-favorites-hint" v-if="searchQuery">Try a different search term</p>
         <p class="no-favorites-hint" v-else>Questions you star will appear here</p>
@@ -65,7 +65,7 @@
               </div>
               
               <div class="saved-date">
-                <i class="fas fa-calendar-alt"></i>
+                <i class="fa-regular fa-calendar-alt"></i>
                 {{ formatDate(favorite.created_at) }}
               </div>
             </div>
@@ -77,7 +77,7 @@
                 @click.stop="createThread(favorite)"
                 title="Create conversation thread"
               >
-                <i class="fas fa-comments"></i>
+                <i class="fa-regular fa-comments"></i>
                 Create Thread
               </button>
               
@@ -87,7 +87,7 @@
                 @click.stop="$emit('view-thread', favorite.thread_id)"
                 title="View conversation thread"
               >
-                <i class="fas fa-comments"></i>
+                <i class="fa-regular fa-comments"></i>
                 View Thread
               </button>
             </div>
@@ -98,7 +98,7 @@
     
     <div class="favorites-loading" v-else>
       <div class="loading-spinner">
-        <i class="fas fa-spinner fa-spin"></i>
+        <i class="fa-regular fa-spinner fa-spin"></i>
       </div>
       <p>Loading favorites...</p>
     </div>
@@ -110,7 +110,7 @@
         <div class="dialog-header">
           <h3>Create Conversation Thread</h3>
           <button class="close-btn" @click="showThreadDialog = false">
-            <i class="fas fa-times"></i>
+            <i class="fa-regular fa-times"></i>
           </button>
         </div>
         

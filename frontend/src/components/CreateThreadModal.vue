@@ -6,7 +6,7 @@
       <div class="modal-header">
         <h3>Create Conversation Thread</h3>
         <button class="close-btn" @click="$emit('close')">
-          <i class="fas fa-times"></i>
+          <i class="fa-regular fa-times"></i>
         </button>
       </div>
       

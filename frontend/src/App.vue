@@ -8,16 +8,16 @@
         
         <div class="nav-links">
           <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">
-            <i class="fas fa-search"></i> Search
+            <i class="fa-regular fa-search"></i> Search
           </router-link>
           <router-link to="/cache" class="nav-link" :class="{ active: $route.path === '/cache' }">
-            <i class="fas fa-database"></i> Cache
+            <i class="fa-regular fa-database"></i> Cache
           </router-link>
           <router-link to="/evaluation" class="nav-link" :class="{ active: $route.path === '/evaluation' }">
-            <i class="fas fa-chart-bar"></i> Evaluation
+            <i class="fa-regular fa-chart-bar"></i> Evaluation
           </router-link>
           <router-link to="/export" class="nav-link" :class="{ active: $route.path === '/export' }">
-            <i class="fas fa-download"></i> Export
+            <i class="fa-regular fa-download"></i> Export
           </router-link>
         </div>
       </div>
