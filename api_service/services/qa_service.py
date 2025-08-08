@@ -6,6 +6,94 @@ import asyncio
 from typing import List, Dict, Any, Optional, Tuple
 from openai import OpenAI
 from utils import get_db_connection, Config
+from .query_service import QueryService
+from evaluators.retrieval_relevance import RetrievalRelevanceEvaluator
+
+class RetrievalEvaluator:
+    def __init__(self):
+        self.query_service = QueryService()
+        self.relevance = RetrievalRelevanceEvaluator()
+
+    def evaluate_vector_retrieval(self, query: str, max_results: int = 10) -> Dict[str, Any]:
+        # Run vector-only retrieval
+        query_embedding = self.query_service.create_embedding(query)
+        chunks = self.query_service.vector_search(query_embedding, max_results)
+        # Score relevance
+        judgments = self.relevance.evaluate_ranked_list(query, chunks)
+        return {"chunks": chunks, "judgments": judgments}
+
+    async def evaluate_llm_retrieval(self, query: str, chunks: List[Dict], threshold: float = None) -> List[Dict[str, Any]]:
+        # Use QAService.classify_chunk_relevance to score chunks asynchronously
+        if threshold is None:
+            threshold = Config.LLM_RETRIEVAL_THRESHOLD
+        qa = QAService()
+        async def judge(rank_and_chunk):
+            rank, ch = rank_and_chunk
+            try:
+                score = await qa.classify_chunk_relevance(ch, query)
+            except Exception:
+                score = 0.5
+            is_rel = int(score >= threshold)
+            return {
+                "chunk_id": ch.get("id"),
+                "relevance_score": is_rel,
+                "llm_score": float(score),
+                "explanation": f"llm_score={score:.3f} threshold={threshold}",
+                "retrieval_method": "llm",
+                "rank_position": rank,
+            }
+        tasks = [judge((rank, ch)) for rank, ch in enumerate(chunks, start=1)]
+        return await asyncio.gather(*tasks)
+
+    def persist_retrieval_evaluations(self, query_cache_id: int, judgments: List[Dict[str, Any]]):
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                rows = [
+                    (
+                        query_cache_id,
+                        j.get("chunk_id"),
+                        int(j.get("relevance_score", 0)),
+                        j.get("llm_score", None),
+                        j.get("explanation"),
+                        j.get("retrieval_method", "vector"),
+                        int(j.get("rank_position", 0)),
+                    )
+                    for j in judgments
+                ]
+                if rows:
+                    from psycopg2.extras import execute_values
+                    execute_values(
+                        cursor,
+                        """
+                        INSERT INTO retrieval_evaluations 
+                        (query_id, chunk_id, relevance_score, llm_score, explanation, retrieval_method, rank_position)
+                        VALUES %s
+                        """,
+                        rows
+                    )
+                conn.commit()
+
+    def compare_retrieval_methods(self, query: str) -> Dict[str, Any]:
+        # For now, vector-only; structure allows future extensions
+        vector_result = self.evaluate_vector_retrieval(query)
+        # Compute simple metrics: Precision@K for K in {5,10}
+        def precision_at_k(judgments: List[Dict[str, Any]], k: int) -> float:
+            topk = judgments[:k]
+            if not topk:
+                return 0.0
+            rel = sum(1 for j in topk if j.get("relevance_score") == 1)
+            return rel / len(topk)
+        judgments = vector_result["judgments"]
+        metrics = {
+            "precision@5": precision_at_k(judgments, 5),
+            "precision@10": precision_at_k(judgments, 10),
+        }
+        return {
+            "vector": {
+                "metrics": metrics,
+                "judgments": judgments,
+            }
+        }
 
 class QAService:
     def __init__(self):
