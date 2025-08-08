@@ -6,7 +6,7 @@
       <div class="thread-header">
         <h2>{{ threadTitle }}</h2>
         <button class="close-btn" @click="$emit('close')">
-          <i class="fas fa-times"></i>
+          <FontAwesomeIcon :icon="faXmark" />
         </button>
       </div>
       
@@ -34,7 +34,7 @@
                 <div class="chunks-header">
                   <span>Supporting Text</span>
                   <button class="toggle-chunks-btn" @click="toggleChunks(message.id)">
-                    <i :class="expandedChunks[message.id] ? 'fas fa-chevron-up' : 'fas fa-chevron-down'"></i>
+                    <FontAwesomeIcon :icon="expandedChunks[message.id] ? 'faChevronUp' : 'faChevronDown'"/>
                   </button>
                 </div>
                 <div class="chunks-list" v-if="expandedChunks[message.id]">
@@ -81,7 +81,8 @@
             @click="sendMessage"
             :disabled="!messageText.trim() || isSending"
           >
-            <i :class="isSending ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
+            <FontAwesomeIcon :icon="faPaperPlane" v-if="!isLoading" />
+            <FontAwesomeIcon :icon="faRotate" v-if="isLoading" spin />
           </button>
         </div>
         
@@ -90,6 +91,11 @@
     </div>
   </div>
 </template>
+
+<script setup>
+  import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+  import { faXmark, faChevronUp, faChevronDown, faPaperPlan, faRotate } from '@fortawesome/free-solid-svg-icons'
+</script>
 
 <script>
 import { marked } from 'marked';
