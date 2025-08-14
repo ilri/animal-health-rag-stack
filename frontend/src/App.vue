@@ -3,15 +3,15 @@
     <nav class="navbar">
       <div class="nav-container">
         <router-link to="/" class="nav-brand">
-          <h1>AI Search</h1>
+          <h1>ILRI Animal Health Chatbot</h1>
         </router-link>
         
         <div class="nav-links">
           <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">
-            <FontAwesomeIcon :icon="faMagnifyingGlass" /> Search
+            <FontAwesomeIcon :icon="faMagnifyingGlass" /> Ask
           </router-link>
           <router-link to="/cache" class="nav-link" :class="{ active: $route.path === '/cache' }">
-            <FontAwesomeIcon :icon="faDatabase" /> Cache
+            <FontAwesomeIcon :icon="faDatabase" /> History
           </router-link>
           <router-link to="/evaluation" class="nav-link" :class="{ active: $route.path === '/evaluation' }">
             <FontAwesomeIcon :icon="faChartBar" /> Evaluation

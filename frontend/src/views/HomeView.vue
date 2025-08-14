@@ -1,20 +1,19 @@
 <template>
   <div class="home-view">
     <div class="query-section">
-      <h1>AI Search</h1>
-      <IngestionProgress />
-      <p class="subtitle">Query your documents with AI-powered search and knowledge graph enhancement</p>
+      <h1>ILRI Animal Health Chatbot</h1>
+      <p class="subtitle">Ask questions about animal health and veterinary care</p>
       
       <form @submit.prevent="submitQuery" class="query-form">
         <input 
           v-model="queryInput" 
           type="text" 
-          placeholder="Ask a question about your documents..."
+          placeholder="Ask a question about animal health and veterinary care..."
           class="query-input"
           :disabled="loading"
         />
         <button type="submit" :disabled="loading || !queryInput.trim()" class="submit-button">
-          {{ loading ? 'Searching...' : 'Search' }}
+          {{ loading ? 'Searching...' : 'Ask' }}
         </button>
       </form>
     </div>
