@@ -1,9 +1,9 @@
 <template>
-  <div class="cache-view">
-    <h1>Query Cache</h1>
-    <p class="subtitle">View all cached queries and their feedback</p>
+  <div class="history-view">
+    <h1>Query History</h1>
+    <p class="subtitle">View all your past queries and their feedback</p>
 
-    <div class="cache-stats" v-if="stats">
+    <div class="history-stats" v-if="stats">
       <div class="stat-card">
         <h3>Total Entries</h3>
         <p class="stat-value">{{ stats.total }}</p>
@@ -24,17 +24,17 @@
 
     <div class="filters">
       <label>
-        <input type="checkbox" v-model="includeFeedback" @change="loadCacheEntries">
+        <input type="checkbox" v-model="includeFeedback" @change="loadHistoryEntries">
         Include feedback data
       </label>
     </div>
 
-    <div v-if="loading" class="loading">Loading cache entries...</div>
+    <div v-if="loading" class="loading">Loading history entries...</div>
     <div v-else-if="error" class="error-message">{{ error }}</div>
-    <div v-else-if="entries.length === 0" class="empty-state">No cache entries found</div>
+    <div v-else-if="entries.length === 0" class="empty-state">No history entries found</div>
     
-    <div v-else class="cache-entries">
-      <div v-for="entry in entries" :key="entry.id" class="cache-entry">
+    <div v-else class="history-entries">
+      <div v-for="entry in entries" :key="entry.id" class="history-entry">
         <div class="entry-header">
           <h3>{{ entry.query }}</h3>
           <div class="entry-meta">
@@ -111,7 +111,7 @@ import { ref, onMounted } from 'vue'
 import { marked } from 'marked'
 
 export default {
-  name: 'CacheView',
+  name: 'HistoryView',
   setup() {
     const entries = ref([])
     const loading = ref(false)
@@ -123,7 +123,7 @@ export default {
     const selectedEntry = ref(null)
     const stats = ref(null)
 
-    const loadCacheEntries = async (append = false) => {
+    const loadHistoryEntries = async (append = false) => {
       loading.value = true
       error.value = ''
       
@@ -132,7 +132,7 @@ export default {
         
         if (!response.ok) {
           const text = await response.text()
-          let message = 'Failed to load cache entries'
+          let message = 'Failed to load history entries'
           try {
             const data = JSON.parse(text)
             message = data.message || data.detail || message
@@ -173,11 +173,11 @@ export default {
 
     const loadMore = () => {
       offset.value += limit.value
-      loadCacheEntries(true)
+      loadHistoryEntries(true)
     }
 
     const deleteEntry = async (entryId) => {
-      if (!confirm('Are you sure you want to delete this cache entry?')) {
+      if (!confirm('Are you sure you want to delete this history entry?')) {
         return
       }
       
@@ -223,7 +223,7 @@ export default {
     }
 
     onMounted(() => {
-      loadCacheEntries()
+      loadHistoryEntries()
     })
 
     return {
@@ -234,7 +234,7 @@ export default {
       hasMore,
       selectedEntry,
       stats,
-      loadCacheEntries,
+      loadHistoryEntries,
       loadMore,
       deleteEntry,
       viewDetails,
@@ -248,7 +248,7 @@ export default {
 </script>
 
 <style scoped>
-.cache-view {
+.history-view {
   padding: 20px;
   max-width: 1200px;
   margin: 0 auto;
@@ -259,7 +259,7 @@ export default {
   margin-bottom: 30px;
 }
 
-.cache-stats {
+.history-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
@@ -290,12 +290,12 @@ export default {
   margin-bottom: 20px;
 }
 
-.cache-entries {
+.history-entries {
   display: grid;
   gap: 20px;
 }
 
-.cache-entry {
+.history-entry {
   background: white;
   border: 1px solid #ddd;
   border-radius: 8px;

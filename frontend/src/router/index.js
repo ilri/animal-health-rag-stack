@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import CacheView from '../views/CacheView.vue'
+import HistoryView from '../views/HistoryView.vue'
 import EvaluationView from '../views/EvaluationView.vue'
 import ExportView from '../views/ExportView.vue'
 
@@ -11,9 +11,9 @@ const routes = [
     component: HomeView
   },
   {
-    path: '/cache',
-    name: 'Cache',
-    component: CacheView
+    path: '/history',
+    name: 'History',
+    component: HistoryView
   },
   {
     path: '/evaluation',

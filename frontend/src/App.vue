@@ -3,14 +3,14 @@
     <nav class="navbar">
       <div class="nav-container">
         <router-link to="/" class="nav-brand">
-          <h1>ILRI Animal Health Chatbot</h1>
+          <h1>ILRI Archive</h1>
         </router-link>
         
         <div class="nav-links">
           <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">
             <FontAwesomeIcon :icon="faMagnifyingGlass" /> Ask
           </router-link>
-          <router-link to="/cache" class="nav-link" :class="{ active: $route.path === '/cache' }">
+          <router-link to="/history" class="nav-link" :class="{ active: $route.path === '/history' }">
             <FontAwesomeIcon :icon="faDatabase" /> History
           </router-link>
           <router-link to="/evaluation" class="nav-link" :class="{ active: $route.path === '/evaluation' }">
