@@ -28,6 +28,26 @@ async def get_favorites():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.get("/feedback/{memory_id}")
+async def get_feedback(memory_id: int):
+    """Get feedback for a specific memory entry."""
+    try:
+        feedback_service = FeedbackService()
+        result = feedback_service.get_feedback(memory_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.delete("/feedback/{memory_id}")
+async def delete_feedback(memory_id: int):
+    """Delete feedback for a specific memory entry."""
+    try:
+        feedback_service = FeedbackService()
+        result = feedback_service.delete_feedback(memory_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/evaluation/metrics")
 async def get_evaluation_metrics():
     """Get aggregated evaluation metrics from user feedback."""
