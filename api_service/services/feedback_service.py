@@ -115,3 +115,55 @@ class FeedbackService:
                     }
                     for fav in favorites
                 ]
+    
+    def delete_feedback(self, memory_id: int) -> Dict[str, Any]:
+        """Delete user feedback for a query."""
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                # Check if feedback exists
+                cursor.execute("SELECT id FROM user_feedback WHERE query_cache_id = %s", (memory_id,))
+                existing_feedback = cursor.fetchone()
+                
+                if not existing_feedback:
+                    return {
+                        "status": "error",
+                        "message": f"No feedback found for memory ID {memory_id}"
+                    }
+                
+                # Delete the feedback
+                cursor.execute("DELETE FROM user_feedback WHERE query_cache_id = %s", (memory_id,))
+                conn.commit()
+                
+                return {
+                    "status": "success",
+                    "message": "Feedback deleted successfully"
+                }
+    
+    def get_feedback(self, memory_id: int) -> Dict[str, Any]:
+        """Get feedback for a specific query."""
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    SELECT rating, feedback_text, is_favorite, created_at, updated_at
+                    FROM user_feedback 
+                    WHERE query_cache_id = %s
+                """, (memory_id,))
+                
+                feedback = cursor.fetchone()
+                
+                if not feedback:
+                    return {
+                        "status": "error",
+                        "message": f"No feedback found for memory ID {memory_id}"
+                    }
+                
+                return {
+                    "status": "success",
+                    "feedback": {
+                        "rating": feedback["rating"],
+                        "feedback_text": feedback["feedback_text"],
+                        "is_favorite": feedback["is_favorite"],
+                        "created_at": feedback["created_at"].isoformat() if feedback["created_at"] else None,
+                        "updated_at": feedback["updated_at"].isoformat() if feedback["updated_at"] else None
+                    }
+                }

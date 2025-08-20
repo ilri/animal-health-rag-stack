@@ -6,7 +6,7 @@
           class="action-btn favorite-btn" 
           :class="{ 'active': isFavorite }"
           @click="toggleFavorite"
-          title="Favorite this answer"
+          :title="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
         >
           <span class="icon">
             <FontAwesomeIcon :icon="farStar" v-if="!isFavorite" />
@@ -46,10 +46,20 @@
     
     <div class="feedback-container" v-if="showFeedback">
       <div class="feedback-form">
-        <h3>Provide Feedback</h3>
+        <h3>{{ existingFeedback ? 'Update Feedback' : 'Provide Feedback' }}</h3>
         
         <div class="rating-container">
-          <label>Rating:</label>
+          <div class="rating-label-row">
+            <label>Rating:</label>
+            <button 
+              v-if="existingFeedback && existingFeedback.rating"
+              class="clear-rating-btn"
+              @click="clearRating"
+              title="Clear rating"
+            >
+              <FontAwesomeIcon :icon="faTimes" />
+            </button>
+          </div>
           <div class="stars">
             <span 
               v-for="i in 5" 
@@ -64,7 +74,17 @@
         </div>
         
         <div class="feedback-text">
-          <label for="feedback">Comment (optional):</label>
+          <div class="feedback-label-row">
+            <label for="feedback">Comment (optional):</label>
+            <button 
+              v-if="existingFeedback && existingFeedback.feedback_text"
+              class="clear-comment-btn"
+              @click="clearComment"
+              title="Clear comment"
+            >
+              <FontAwesomeIcon :icon="faTimes" />
+            </button>
+          </div>
           <textarea 
             id="feedback" 
             v-model="feedbackText"
@@ -81,11 +101,19 @@
             Cancel
           </button>
           <button 
+            v-if="existingFeedback"
+            class="clear-all-btn"
+            @click="clearAllFeedback"
+            :disabled="isSubmitting"
+          >
+            {{ isSubmitting ? 'Clearing...' : 'Clear All' }}
+          </button>
+          <button 
             class="submit-btn"
             @click="submitFeedback"
             :disabled="isSubmitting"
           >
-            {{ isSubmitting ? 'Submitting...' : 'Submit Feedback' }}
+            {{ isSubmitting ? 'Submitting...' : (existingFeedback ? 'Update Feedback' : 'Submit Feedback') }}
           </button>
         </div>
       </div>
@@ -95,7 +123,7 @@
 
 <script setup>
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-  import { faStar, faComments, faCommentDots, faMemory } from '@fortawesome/free-solid-svg-icons'
+  import { faStar, faComments, faCommentDots, faMemory, faTimes } from '@fortawesome/free-solid-svg-icons'
   import { faStar as farStar, faCalendarDays } from '@fortawesome/free-regular-svg-icons'
 </script>
 
@@ -127,7 +155,8 @@ export default {
       rating: 0,
       feedbackText: '',
       isFavorite: this.initialFavorite,
-      isSubmitting: false
+      isSubmitting: false,
+      existingFeedback: null
     }
   },
   methods: {
@@ -160,8 +189,8 @@ export default {
     },
     
     async submitFeedback() {
-      if (this.rating === 0) {
-        alert('Please provide a rating');
+      if (this.rating === 0 && !this.feedbackText.trim() && !this.isFavorite) {
+        alert('Please provide at least a rating, comment, or mark as favorite');
         return;
       }
       
@@ -176,21 +205,81 @@ export default {
           },
           body: JSON.stringify({
             memory_id: this.memoryId,
-            rating: this.rating,
-            feedback_text: this.feedbackText || null,
+            rating: this.rating > 0 ? this.rating : null,
+            feedback_text: this.feedbackText.trim() || null,
             is_favorite: this.isFavorite
           })
         });
         
         if (response.ok) {
           this.showFeedback = false;
-          this.feedbackText = '';
+          // Update existing feedback after successful submission
+          await this.loadExistingFeedback();
           this.$emit('feedback-submitted');
         } else {
           console.error('Failed to submit feedback');
+          alert('Failed to submit feedback. Please try again.');
         }
       } catch (error) {
         console.error('Error submitting feedback:', error);
+        alert('Failed to submit feedback. Please try again.');
+      } finally {
+        this.isSubmitting = false;
+      }
+    },
+    
+    async loadExistingFeedback() {
+      if (!this.memoryId) return;
+      
+      try {
+        const response = await fetch(`/api/feedback/${this.memoryId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.status === 'success') {
+            this.existingFeedback = data.feedback;
+            this.rating = data.feedback.rating || 0;
+            this.feedbackText = data.feedback.feedback_text || '';
+          }
+        }
+      } catch (error) {
+        console.error('Error loading existing feedback:', error);
+      }
+    },
+    
+    clearRating() {
+      this.rating = 0;
+    },
+    
+    clearComment() {
+      this.feedbackText = '';
+    },
+    
+    async clearAllFeedback() {
+      if (!confirm('Are you sure you want to remove all feedback for this answer?')) {
+        return;
+      }
+      
+      try {
+        this.isSubmitting = true;
+        
+        const response = await fetch(`/api/feedback/${this.memoryId}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          this.existingFeedback = null;
+          this.rating = 0;
+          this.feedbackText = '';
+          this.isFavorite = false;
+          this.showFeedback = false;
+          this.$emit('feedback-cleared');
+        } else {
+          console.error('Failed to clear feedback');
+          alert('Failed to clear feedback. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error clearing feedback:', error);
+        alert('Failed to clear feedback. Please try again.');
       } finally {
         this.isSubmitting = false;
       }
@@ -211,6 +300,19 @@ export default {
       } else {
         return 'Create conversation thread';
       }
+    }
+  },
+  watch: {
+    showFeedback(newValue) {
+      if (newValue && this.memoryId) {
+        this.loadExistingFeedback();
+      }
+    }
+  },
+  mounted() {
+    // Load existing feedback if memoryId is available
+    if (this.memoryId) {
+      this.loadExistingFeedback();
     }
   }
 }
@@ -299,10 +401,18 @@ export default {
 }
 
 .rating-container {
-  display: flex;
-  align-items: center;
   margin-bottom: 1rem;
-  gap: 1rem;
+}
+
+.rating-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.rating-label-row label {
+  margin: 0;
 }
 
 .stars {
@@ -323,13 +433,18 @@ export default {
 }
 
 .feedback-text {
-  display: flex;
-  flex-direction: column;
   margin-bottom: 1rem;
 }
 
-.feedback-text label {
+.feedback-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 0.5rem;
+}
+
+.feedback-label-row label {
+  margin: 0;
 }
 
 .feedback-text textarea {
@@ -347,7 +462,8 @@ export default {
 }
 
 .cancel-btn,
-.submit-btn {
+.submit-btn,
+.clear-all-btn {
   padding: 0.5rem 1rem;
   border-radius: 4px;
   border: none;
@@ -363,6 +479,42 @@ export default {
 
 .cancel-btn:hover {
   background-color: #dee2e6;
+}
+
+.clear-rating-btn,
+.clear-comment-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.clear-rating-btn:hover,
+.clear-comment-btn:hover {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.clear-all-btn {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.clear-all-btn:hover {
+  background-color: #f1b0b7;
+}
+
+.clear-all-btn:disabled {
+  background-color: #f8d7da;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .submit-btn {

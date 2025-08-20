@@ -91,6 +91,14 @@
                 <FontAwesomeIcon :icon="faComments" />
                 View Thread
               </button>
+              
+              <button 
+                class="remove-favorite-btn" 
+                @click.stop="removeFavorite(favorite)"
+                title="Remove from favorites"
+              >
+                <FontAwesomeIcon :icon="faTrash" />
+              </button>
             </div>
           </div>
         </div>
@@ -150,7 +158,7 @@
 
 <script setup>
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-  import { faRotate, faMagnifyingGlass, faComments, faXmark } from '@fortawesome/free-solid-svg-icons'
+  import { faRotate, faMagnifyingGlass, faComments, faXmark, faTrash } from '@fortawesome/free-solid-svg-icons'
   import { faStar as farStar, faCalendarDays } from '@fortawesome/free-regular-svg-icons'
 </script>
 
@@ -330,6 +338,29 @@ export default {
         console.error('Error creating thread:', error);
       } finally {
         this.isCreatingThread = false;
+      }
+    },
+    
+    async removeFavorite(favorite) {
+      if (!confirm('Are you sure you want to remove this item from favorites?')) {
+        return;
+      }
+      
+      try {
+        const response = await fetch(`/api/feedback/${favorite.query_cache_id}`, {
+          method: 'DELETE'
+        });
+        
+        if (response.ok) {
+          // Remove from local array
+          this.favorites = this.favorites.filter(f => f.query_cache_id !== favorite.query_cache_id);
+        } else {
+          console.error('Failed to remove favorite');
+          alert('Failed to remove favorite. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error removing favorite:', error);
+        alert('Failed to remove favorite. Please try again.');
       }
     }
   }
@@ -560,6 +591,7 @@ export default {
   margin-top: 1rem;
   display: flex;
   justify-content: flex-end;
+  gap: 0.5rem;
 }
 
 .thread-btn {
@@ -589,6 +621,26 @@ export default {
 
 .thread-btn.view:hover {
   background-color: #0055b3;
+}
+
+.remove-favorite-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffeaea;
+  border: 1px solid #ffb3b3;
+  color: #cc0000;
+  border-radius: 6px;
+  padding: 0.5rem;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-favorite-btn:hover {
+  background-color: #ffcccc;
+  border-color: #ff8080;
 }
 
 .favorites-loading {
