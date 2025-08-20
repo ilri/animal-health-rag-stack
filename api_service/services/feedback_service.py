@@ -104,12 +104,13 @@ class FeedbackService:
                 return [
                     {
                         "id": fav["id"],
-                        "query": fav["query_text"],
-                        "answer": fav["answer_text"],
-                        "references": json.loads(fav["references"]) if fav["references"] else [],
+                        "query_cache_id": fav["id"],
+                        "query_text": fav["query_text"],
+                        "answer_text": fav["answer_text"],
+                        "references": fav["references"] if isinstance(fav["references"], list) else (json.loads(fav["references"]) if fav["references"] else []),
                         "created_at": fav["created_at"].isoformat() if fav["created_at"] else None,
                         "rating": fav["rating"],
-                        "feedback": fav["feedback_text"],
+                        "feedback_text": fav["feedback_text"],
                         "favorited_at": fav["favorited_at"].isoformat() if fav["favorited_at"] else None
                     }
                     for fav in favorites
