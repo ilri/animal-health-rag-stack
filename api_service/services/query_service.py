@@ -96,14 +96,14 @@ class QueryService:
         Guidelines:
         1. Answer the query using ONLY the information in the provided context.
         2. If the context doesn't contain enough information to fully answer the query, acknowledge the limitations.
-        3. Include parenthetical citations when referring to specific information, using the format [doc1], [doc2], etc.
+        3. Include parenthetical citations when referring to specific information, using the format [chunk1], [chunk2], etc.
         4. Ensure the number of references in your response matches the number of references provided.
         5. Write in a clear, informative, and authoritative style.
         6. Make connections between different pieces of information where relevant.
         7. The answer should be 1-2 paragraphs (3-8 sentences).
         
         References to use (in order):
-        {', '.join([f'[{i+1}] {ref}' for i, ref in enumerate(references)])}
+        {', '.join([f'[chunk{i+1}] {ref}' for i, ref in enumerate(references)])}
         """
         
         response = self.client.chat.completions.create(
