@@ -1,7 +1,7 @@
 <template>
   <div class="home-view">
     <div class="query-section">
-      <h1>ILRI Animal Health Chatbot</h1>
+      <h1>ILRI Animal Health AI Pilot </h1>
       <p class="subtitle">Ask questions about animal health and veterinary care</p>
       
       <form @submit.prevent="submitQuery" class="query-form">
