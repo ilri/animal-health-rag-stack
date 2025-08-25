@@ -9,8 +9,8 @@
           :title="isFavorite ? 'Remove from favorites' : 'Add to favorites'"
         >
           <span class="icon">
-            <FontAwesomeIcon :icon="farStar" v-if="!isFavorite" />
-            <FontAwesomeIcon :icon="faStar" v-if="isFavorite" />
+            <FontAwesomeIcon :icon="farHeart" v-if="!isFavorite" />
+            <FontAwesomeIcon :icon="faHeart" v-if="isFavorite" />
           </span>
         </button>
         
@@ -48,28 +48,87 @@
       <div class="feedback-form">
         <h3>{{ existingFeedback ? 'Update Feedback' : 'Provide Feedback' }}</h3>
         
-        <div class="rating-container">
-          <div class="rating-label-row">
-            <label>Rating:</label>
-            <button 
-              v-if="existingFeedback && existingFeedback.rating"
-              class="clear-rating-btn"
-              @click="clearRating"
-              title="Clear rating"
-            >
-              <FontAwesomeIcon :icon="faTimes" />
-            </button>
+        <!-- Multiple Rating Categories -->
+        <div class="rating-categories">
+          <!-- Accuracy Rating -->
+          <div class="rating-container">
+            <div class="rating-label-row">
+              <label>Accuracy:</label>
+              <button 
+                v-if="existingFeedback && existingFeedback.accuracy_rating"
+                class="clear-rating-btn"
+                @click="clearAccuracyRating"
+                title="Clear accuracy rating"
+              >
+                <FontAwesomeIcon :icon="faTimes" />
+              </button>
+            </div>
+            <div class="stars">
+              <span 
+                v-for="i in 5" 
+                :key="'accuracy-' + i"
+                @click="accuracyRating = i"
+                :class="{ 'active': accuracyRating >= i }"
+                class="star"
+              >
+                <FontAwesomeIcon :icon="faStar" />
+              </span>
+            </div>
+            <div class="rating-description">How factually correct was the answer?</div>
           </div>
-          <div class="stars">
-            <span 
-              v-for="i in 5" 
-              :key="i"
-              @click="rating = i"
-              :class="{ 'active': rating >= i }"
-              class="star"
-            >
-              <FontAwesomeIcon :icon="faStar" />
-            </span>
+
+          <!-- Comprehensiveness Rating -->
+          <div class="rating-container">
+            <div class="rating-label-row">
+              <label>Completeness:</label>
+              <button 
+                v-if="existingFeedback && existingFeedback.comprehensiveness_rating"
+                class="clear-rating-btn"
+                @click="clearComprehensivenessRating"
+                title="Clear completeness rating"
+              >
+                <FontAwesomeIcon :icon="faTimes" />
+              </button>
+            </div>
+            <div class="stars">
+              <span 
+                v-for="i in 5" 
+                :key="'comprehensiveness-' + i"
+                @click="comprehensivenessRating = i"
+                :class="{ 'active': comprehensivenessRating >= i }"
+                class="star"
+              >
+                <FontAwesomeIcon :icon="faStar" />
+              </span>
+            </div>
+            <div class="rating-description">How thoroughly did it cover the topic?</div>
+          </div>
+
+          <!-- Helpfulness Rating -->
+          <div class="rating-container">
+            <div class="rating-label-row">
+              <label>Helpfulness:</label>
+              <button 
+                v-if="existingFeedback && existingFeedback.helpfulness_rating"
+                class="clear-rating-btn"
+                @click="clearHelpfulnessRating"
+                title="Clear helpfulness rating"
+              >
+                <FontAwesomeIcon :icon="faTimes" />
+              </button>
+            </div>
+            <div class="stars">
+              <span 
+                v-for="i in 5" 
+                :key="'helpfulness-' + i"
+                @click="helpfulnessRating = i"
+                :class="{ 'active': helpfulnessRating >= i }"
+                class="star"
+              >
+                <FontAwesomeIcon :icon="faStar" />
+              </span>
+            </div>
+            <div class="rating-description">How useful was this answer for you?</div>
           </div>
         </div>
         
@@ -123,8 +182,8 @@
 
 <script setup>
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-  import { faStar, faComments, faCommentDots, faMemory, faTimes } from '@fortawesome/free-solid-svg-icons'
-  import { faStar as farStar, faCalendarDays } from '@fortawesome/free-regular-svg-icons'
+  import { faStar, faComments, faCommentDots, faMemory, faTimes, faHeart } from '@fortawesome/free-solid-svg-icons'
+  import { faHeart as farHeart, faCalendarDays } from '@fortawesome/free-regular-svg-icons'
 </script>
 
 <script>
@@ -152,7 +211,10 @@ export default {
   data() {
     return {
       showFeedback: false,
-      rating: 0,
+      rating: 0,  // Legacy rating for backwards compatibility
+      accuracyRating: 0,
+      comprehensivenessRating: 0,
+      helpfulnessRating: 0,
       feedbackText: '',
       isFavorite: this.initialFavorite,
       isSubmitting: false,
@@ -189,8 +251,9 @@ export default {
     },
     
     async submitFeedback() {
-      if (this.rating === 0 && !this.feedbackText.trim() && !this.isFavorite) {
-        alert('Please provide at least a rating, comment, or mark as favorite');
+      if (this.rating === 0 && this.accuracyRating === 0 && this.comprehensivenessRating === 0 && 
+          this.helpfulnessRating === 0 && !this.feedbackText.trim() && !this.isFavorite) {
+        alert('Please provide at least one rating, comment, or mark as favorite');
         return;
       }
       
@@ -205,7 +268,10 @@ export default {
           },
           body: JSON.stringify({
             memory_id: this.memoryId,
-            rating: this.rating > 0 ? this.rating : null,
+            rating: this.rating > 0 ? this.rating : null,  // Keep legacy for compatibility
+            accuracy_rating: this.accuracyRating > 0 ? this.accuracyRating : null,
+            comprehensiveness_rating: this.comprehensivenessRating > 0 ? this.comprehensivenessRating : null,
+            helpfulness_rating: this.helpfulnessRating > 0 ? this.helpfulnessRating : null,
             feedback_text: this.feedbackText.trim() || null,
             is_favorite: this.isFavorite
           })
@@ -238,6 +304,9 @@ export default {
           if (data.status === 'success') {
             this.existingFeedback = data.feedback;
             this.rating = data.feedback.rating || 0;
+            this.accuracyRating = data.feedback.accuracy_rating || 0;
+            this.comprehensivenessRating = data.feedback.comprehensiveness_rating || 0;
+            this.helpfulnessRating = data.feedback.helpfulness_rating || 0;
             this.feedbackText = data.feedback.feedback_text || '';
           }
         }
@@ -248,6 +317,18 @@ export default {
     
     clearRating() {
       this.rating = 0;
+    },
+    
+    clearAccuracyRating() {
+      this.accuracyRating = 0;
+    },
+    
+    clearComprehensivenessRating() {
+      this.comprehensivenessRating = 0;
+    },
+    
+    clearHelpfulnessRating() {
+      this.helpfulnessRating = 0;
     },
     
     clearComment() {
@@ -269,6 +350,9 @@ export default {
         if (response.ok) {
           this.existingFeedback = null;
           this.rating = 0;
+          this.accuracyRating = 0;
+          this.comprehensivenessRating = 0;
+          this.helpfulnessRating = 0;
           this.feedbackText = '';
           this.isFavorite = false;
           this.showFeedback = false;
@@ -364,9 +448,9 @@ export default {
 }
 
 .favorite-btn.active {
-  background-color: #fff8e0;
-  border-color: #ffca28;
-  color: #ff9800;
+  background-color: #ffeef0;
+  border-color: #ff6b7a;
+  color: #e91e63;
 }
 
 .memory-indicator {
@@ -400,8 +484,15 @@ export default {
   font-weight: 500;
 }
 
-.rating-container {
+.rating-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   margin-bottom: 1rem;
+}
+
+.rating-container {
+  margin-bottom: 0;
 }
 
 .rating-label-row {
@@ -430,6 +521,13 @@ export default {
 .star:hover,
 .star.active {
   color: #ffca28;
+}
+
+.rating-description {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 0.5rem;
+  font-style: italic;
 }
 
 .feedback-text {

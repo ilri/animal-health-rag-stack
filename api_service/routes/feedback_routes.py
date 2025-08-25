@@ -72,6 +72,12 @@ async def get_evaluation_metrics():
                         COUNT(*) as total_feedback,
                         COUNT(CASE WHEN rating IS NOT NULL THEN 1 END) as rated_count,
                         AVG(rating) as average_rating,
+                        COUNT(CASE WHEN accuracy_rating IS NOT NULL THEN 1 END) as accuracy_rated_count,
+                        AVG(accuracy_rating) as average_accuracy_rating,
+                        COUNT(CASE WHEN comprehensiveness_rating IS NOT NULL THEN 1 END) as comprehensiveness_rated_count,
+                        AVG(comprehensiveness_rating) as average_comprehensiveness_rating,
+                        COUNT(CASE WHEN helpfulness_rating IS NOT NULL THEN 1 END) as helpfulness_rated_count,
+                        AVG(helpfulness_rating) as average_helpfulness_rating,
                         COUNT(CASE WHEN is_favorite = true THEN 1 END) as favorites_count,
                         COUNT(CASE WHEN feedback_text IS NOT NULL THEN 1 END) as text_feedback_count
                     FROM user_feedback
@@ -98,6 +104,12 @@ async def get_evaluation_metrics():
                             "total_feedback": stats["total_feedback"],
                             "rated_count": stats["rated_count"],
                             "average_rating": float(stats["average_rating"]) if stats["average_rating"] else None,
+                            "accuracy_rated_count": stats["accuracy_rated_count"],
+                            "average_accuracy_rating": float(stats["average_accuracy_rating"]) if stats["average_accuracy_rating"] else None,
+                            "comprehensiveness_rated_count": stats["comprehensiveness_rated_count"],
+                            "average_comprehensiveness_rating": float(stats["average_comprehensiveness_rating"]) if stats["average_comprehensiveness_rating"] else None,
+                            "helpfulness_rated_count": stats["helpfulness_rated_count"],
+                            "average_helpfulness_rating": float(stats["average_helpfulness_rating"]) if stats["average_helpfulness_rating"] else None,
                             "favorites_count": stats["favorites_count"],
                             "text_feedback_count": stats["text_feedback_count"]
                         },

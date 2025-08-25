@@ -32,6 +32,18 @@ class FeedbackService:
                     if feedback.rating is not None:
                         update_parts.append("rating = %s")
                         update_values.append(feedback.rating)
+                    
+                    if feedback.accuracy_rating is not None:
+                        update_parts.append("accuracy_rating = %s")
+                        update_values.append(feedback.accuracy_rating)
+                    
+                    if feedback.comprehensiveness_rating is not None:
+                        update_parts.append("comprehensiveness_rating = %s")
+                        update_values.append(feedback.comprehensiveness_rating)
+                    
+                    if feedback.helpfulness_rating is not None:
+                        update_parts.append("helpfulness_rating = %s")
+                        update_values.append(feedback.helpfulness_rating)
                         
                     if feedback.is_favorite is not None:
                         update_parts.append("is_favorite = %s")
@@ -60,13 +72,16 @@ class FeedbackService:
                     # Create new feedback
                     cursor.execute("""
                         INSERT INTO user_feedback 
-                        (query_cache_id, feedback_text, rating, is_favorite)
-                        VALUES (%s, %s, %s, %s)
+                        (query_cache_id, feedback_text, rating, accuracy_rating, comprehensiveness_rating, helpfulness_rating, is_favorite)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
                         RETURNING id
                     """, (
                         feedback.memory_id,
                         feedback.feedback_text,
                         feedback.rating,
+                        feedback.accuracy_rating,
+                        feedback.comprehensiveness_rating,
+                        feedback.helpfulness_rating,
                         feedback.is_favorite if feedback.is_favorite is not None else False
                     ))
                     
@@ -91,6 +106,9 @@ class FeedbackService:
                         qc.references,
                         qc.created_at,
                         uf.rating,
+                        uf.accuracy_rating,
+                        uf.comprehensiveness_rating,
+                        uf.helpfulness_rating,
                         uf.feedback_text,
                         uf.created_at as favorited_at
                     FROM query_cache qc
@@ -110,6 +128,9 @@ class FeedbackService:
                         "references": fav["references"] if isinstance(fav["references"], list) else (json.loads(fav["references"]) if fav["references"] else []),
                         "created_at": fav["created_at"].isoformat() if fav["created_at"] else None,
                         "rating": fav["rating"],
+                        "accuracy_rating": fav["accuracy_rating"],
+                        "comprehensiveness_rating": fav["comprehensiveness_rating"],
+                        "helpfulness_rating": fav["helpfulness_rating"],
                         "feedback_text": fav["feedback_text"],
                         "favorited_at": fav["favorited_at"].isoformat() if fav["favorited_at"] else None
                     }
@@ -144,7 +165,7 @@ class FeedbackService:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("""
-                    SELECT rating, feedback_text, is_favorite, created_at, updated_at
+                    SELECT rating, accuracy_rating, comprehensiveness_rating, helpfulness_rating, feedback_text, is_favorite, created_at, updated_at
                     FROM user_feedback 
                     WHERE query_cache_id = %s
                 """, (memory_id,))
@@ -161,6 +182,9 @@ class FeedbackService:
                     "status": "success",
                     "feedback": {
                         "rating": feedback["rating"],
+                        "accuracy_rating": feedback["accuracy_rating"],
+                        "comprehensiveness_rating": feedback["comprehensiveness_rating"],
+                        "helpfulness_rating": feedback["helpfulness_rating"],
                         "feedback_text": feedback["feedback_text"],
                         "is_favorite": feedback["is_favorite"],
                         "created_at": feedback["created_at"].isoformat() if feedback["created_at"] else None,
