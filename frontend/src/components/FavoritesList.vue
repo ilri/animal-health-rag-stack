@@ -27,10 +27,10 @@
     
     <div class="favorites-container" v-if="!isLoading">
       <div v-if="filteredFavorites.length === 0" class="no-favorites">
-        <FontAwesomeIcon class="no-favorites-icon" :icon="farStar" />
+        <FontAwesomeIcon class="no-favorites-icon" :icon="farHeart" />
         <p>No favorites found</p>
         <p class="no-favorites-hint" v-if="searchQuery">Try a different search term</p>
-        <p class="no-favorites-hint" v-else>Questions you star will appear here</p>
+        <p class="no-favorites-hint" v-else>Questions you heart will appear here</p>
       </div>
       
       <div v-else class="favorites-grid">
@@ -159,7 +159,7 @@
 <script setup>
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
   import { faRotate, faMagnifyingGlass, faComments, faXmark, faTrash } from '@fortawesome/free-solid-svg-icons'
-  import { faStar as farStar, faCalendarDays } from '@fortawesome/free-regular-svg-icons'
+  import { faHeart as farHeart, faCalendarDays } from '@fortawesome/free-regular-svg-icons'
 </script>
 
 <script>

@@ -36,7 +36,10 @@ class FullResponse(BaseModel):
 class FeedbackRequest(BaseModel):
     memory_id: int
     feedback_text: Optional[str] = None
-    rating: Optional[int] = Field(None, ge=1, le=5)
+    rating: Optional[int] = Field(None, ge=1, le=5)  # Legacy rating for compatibility
+    accuracy_rating: Optional[int] = Field(None, ge=1, le=5)
+    comprehensiveness_rating: Optional[int] = Field(None, ge=1, le=5)
+    helpfulness_rating: Optional[int] = Field(None, ge=1, le=5)
     is_favorite: Optional[bool] = None
 
 class ThreadCreateRequest(BaseModel):
