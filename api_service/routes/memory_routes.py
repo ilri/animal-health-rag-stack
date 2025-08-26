@@ -1,8 +1,9 @@
 import json
 import time
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from services import MemoryService
 from utils import get_db_connection
+from utils.admin import admin_manager
 
 router = APIRouter()
 memory_service = MemoryService()
@@ -20,9 +21,11 @@ async def get_memory_stats():
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/clear")
-async def clear_memory():
-    """Clear all remembered queries."""
+async def clear_memory(request: Request):
+    """Clear all remembered queries. Requires admin access."""
     try:
+        admin_manager.require_admin(request, "clearing all memory entries")
+        
         result = memory_service.clear_memory()
         return {
             "status": "success",
@@ -68,9 +71,11 @@ async def get_memory_entry(entry_id: int):
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.delete("/entry/{entry_id}")
-async def delete_memory_entry(entry_id: int):
-    """Delete a specific remembered query."""
+async def delete_memory_entry(entry_id: int, request: Request):
+    """Delete a specific remembered query. Requires admin access."""
     try:
+        admin_manager.require_admin(request, "deleting memory entries")
+        
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("DELETE FROM query_cache WHERE id = %s RETURNING id", (entry_id,))
