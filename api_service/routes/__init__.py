@@ -10,6 +10,7 @@ from .health_routes import router as health_router
 from .ragas_routes import router as ragas_router
 from .ingestion_quality_routes import router as ingestion_quality_router
 from .retrieval_eval_routes import router as retrieval_eval_router
+from .admin_routes import router as admin_router
 
 # Create main router
 main_router = APIRouter()
@@ -26,3 +27,4 @@ main_router.include_router(health_router, tags=["Health"])
 main_router.include_router(ragas_router, prefix="/ragas", tags=["RAGAS Evaluation"])
 main_router.include_router(ingestion_quality_router)
 main_router.include_router(retrieval_eval_router)
+main_router.include_router(admin_router, tags=["Admin"])

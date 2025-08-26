@@ -1,7 +1,19 @@
 <template>
   <div class="history-view">
-    <h1>Query History</h1>
-    <p class="subtitle">View all your past queries and their feedback</p>
+    <div class="header-with-admin">
+      <div>
+        <h1>Query History</h1>
+        <p class="subtitle">View all your past queries and their feedback</p>
+      </div>
+      <div class="admin-status">
+        <div v-if="isAdmin" class="admin-badge">🔓 Admin Mode Active</div>
+        <div v-else-if="adminInfo.admin_mode_enabled || adminInfo.token_auth_configured" class="admin-toggle">
+          <button @click="enableAdminMode" class="admin-enable-btn">
+            🔒 Enable Admin Mode
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div class="history-stats" v-if="stats">
       <div class="stat-card">
@@ -58,7 +70,8 @@
         
         <div class="entry-actions">
           <button @click="viewDetails(entry)" class="action-button">View Details</button>
-          <button @click="deleteEntry(entry.id)" class="action-button delete">Delete</button>
+          <button v-if="isAdmin" @click="deleteEntry(entry.id)" class="action-button delete">Delete</button>
+          <span v-else-if="showAdminHint" class="admin-hint" title="Admin mode required">🔒 Delete</span>
         </div>
       </div>
     </div>
@@ -109,6 +122,7 @@
 <script>
 import { ref, onMounted } from 'vue'
 import { marked } from 'marked'
+import { useAdmin } from '@/composables/useAdmin'
 
 export default {
   name: 'HistoryView',
@@ -122,6 +136,10 @@ export default {
     const hasMore = ref(true)
     const selectedEntry = ref(null)
     const stats = ref(null)
+    
+    // Admin functionality
+    const { isAdmin, adminInfo, checkAdminStatus, makeAdminRequest, enableAdminMode } = useAdmin()
+    const showAdminHint = ref(true)
 
     const loadHistoryEntries = async (append = false) => {
       loading.value = true
@@ -182,12 +200,13 @@ export default {
       }
       
       try {
-        const response = await fetch(`/api/memory/entry/${entryId}`, {
+        const response = await makeAdminRequest(`/api/memory/entry/${entryId}`, {
           method: 'DELETE'
         })
         
         if (!response.ok) {
-          throw new Error('Failed to delete entry')
+          const data = await response.json().catch(() => ({}))
+          throw new Error(data.detail || 'Failed to delete entry')
         }
         
         // Remove from local list
@@ -222,7 +241,8 @@ export default {
       return text.substring(0, length) + '...'
     }
 
-    onMounted(() => {
+    onMounted(async () => {
+      await checkAdminStatus()
       loadHistoryEntries()
     })
 
@@ -234,6 +254,10 @@ export default {
       hasMore,
       selectedEntry,
       stats,
+      isAdmin,
+      adminInfo,
+      showAdminHint,
+      enableAdminMode,
       loadHistoryEntries,
       loadMore,
       deleteEntry,
@@ -458,5 +482,68 @@ export default {
   padding: 15px;
   border-radius: 5px;
   margin-bottom: 20px;
+}
+
+.admin-hint {
+  color: #666;
+  font-size: 0.9rem;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background-color: #f5f5f5;
+}
+
+.header-with-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+}
+
+.admin-status {
+  margin-top: 10px;
+}
+
+.admin-badge {
+  background: #d4edda;
+  color: #155724;
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-enable-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.admin-enable-btn:hover {
+  background: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .header-with-admin {
+    flex-direction: column;
+  }
+  
+  .admin-status {
+    margin-top: 20px;
+    align-self: flex-start;
+  }
 }
 </style>
