@@ -205,7 +205,9 @@ class MetadataExtractor:
             matches = re.findall(pattern, search_text, re.MULTILINE)
             for match in matches:
                 if isinstance(match, tuple):
-                    match = match[0] if match else continue
+                    if not match:
+                        continue
+                    match = match[0]
                 
                 # Clean and split authors
                 author_line = match.strip()
