@@ -8,7 +8,7 @@ from typing import List
 from datetime import datetime
 
 from .citation_service import CitationService, CitationMetadata
-from ..utils.document_db import (
+from utils.document_db import (
     get_documents_without_citations,
     update_document_citation_metadata,
     mark_citation_fetch_failed
@@ -28,7 +28,7 @@ class CitationFetcher:
     async def _update_document_doi(self, document_id: int, doi: str) -> bool:
         """Update document table with extracted DOI."""
         try:
-            from ..utils.document_db import get_db_connection
+            from utils.document_db import get_db_connection
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
@@ -44,7 +44,7 @@ class CitationFetcher:
     async def _update_document_reference(self, document_id: int, citation: str) -> bool:
         """Update document table with formatted citation."""
         try:
-            from ..utils.document_db import get_db_connection
+            from utils.document_db import get_db_connection
             with get_db_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute(
