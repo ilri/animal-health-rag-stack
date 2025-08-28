@@ -36,53 +36,23 @@ def get_documents_without_citations(limit: int = 50) -> List[Dict[str, Any]]:
 
 def update_document_citation_metadata(
     document_id: int,
-    citation_metadata: Dict[str, Any],
-    citation_apa: str = None,
-    citation_mla: str = None,
-    citation_chicago: str = None
+    citation_reference: str
 ) -> bool:
-    """Update document with fetched citation metadata."""
+    """Update document with fetched citation reference."""
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
             try:
                 cursor.execute(
                     """
                     UPDATE document SET
-                        title = %s,
-                        authors = %s,
-                        journal = %s,
-                        publication_year = %s,
-                        volume = %s,
-                        issue = %s,
-                        pages = %s,
-                        publisher = %s,
-                        abstract = %s,
-                        keywords = %s,
-                        citation_apa = %s,
-                        citation_mla = %s,
-                        citation_chicago = %s,
+                        reference = %s,
                         citation_fetched = TRUE,
                         citation_fetch_attempted_at = NOW(),
                         citation_fetch_error = NULL,
                         updated_at = NOW()
                     WHERE id = %s
                     """,
-                    (
-                        citation_metadata.get('title'),
-                        json.dumps(citation_metadata.get('authors')) if citation_metadata.get('authors') else None,
-                        citation_metadata.get('journal'),
-                        citation_metadata.get('year'),
-                        citation_metadata.get('volume'),
-                        citation_metadata.get('issue'),
-                        citation_metadata.get('pages'),
-                        citation_metadata.get('publisher'),
-                        citation_metadata.get('abstract'),
-                        json.dumps(citation_metadata.get('keywords')) if citation_metadata.get('keywords') else None,
-                        citation_apa,
-                        citation_mla,
-                        citation_chicago,
-                        document_id
-                    )
+                    (citation_reference, document_id)
                 )
                 conn.commit()
                 return cursor.rowcount > 0
@@ -167,8 +137,7 @@ def get_citation_for_source(source_filename: str) -> Optional[str]:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT citation_apa, citation_mla, citation_chicago, title, authors, 
-                       journal, publication_year, doi
+                SELECT reference
                 FROM document 
                 WHERE filename = %s AND citation_fetched = TRUE
                 LIMIT 1
@@ -177,38 +146,6 @@ def get_citation_for_source(source_filename: str) -> Optional[str]:
             )
             row = cursor.fetchone()
             if row:
-                apa, mla, chicago, title, authors_json, journal, year, doi = row
-                
-                # Return the best available citation format
-                if apa:
-                    return apa
-                elif mla:
-                    return mla
-                elif chicago:
-                    return chicago
-                else:
-                    # Fallback to basic formatting
-                    citation_parts = []
-                    if authors_json:
-                        try:
-                            authors = json.loads(authors_json)
-                            if authors:
-                                citation_parts.append(f"{authors[0]} et al." if len(authors) > 1 else authors[0])
-                        except:
-                            pass
-                    
-                    if year:
-                        citation_parts.append(f"({year})")
-                    
-                    if title:
-                        citation_parts.append(title)
-                    
-                    if journal:
-                        citation_parts.append(f"*{journal}*")
-                    
-                    if doi:
-                        citation_parts.append(f"https://doi.org/{doi}")
-                    
-                    return ". ".join(filter(None, citation_parts))
+                return row[0]  # Return the reference (APA citation from doi.org)
             
             return None
