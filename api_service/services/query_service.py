@@ -5,7 +5,7 @@ from utils import get_db_connection, Config
 from .memory_service import MemoryService
 from .graph_service import GraphService
 from .citation_service import CitationService, CitationMetadata
-from ..utils.document_db import get_documents_for_chunks, get_citation_for_source
+from utils.document_db import get_documents_for_chunks, get_citation_for_source
 # from .ragas_service import RagasService  # Temporarily disabled due to version conflict
 
 class QueryService:

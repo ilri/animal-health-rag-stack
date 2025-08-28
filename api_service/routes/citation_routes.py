@@ -7,9 +7,9 @@ from typing import Dict, Any, Optional
 import asyncio
 import logging
 
-from ..services.citation_fetcher import run_citation_fetcher_once
-from ..utils.document_db import get_documents_without_citations
-from ..utils.admin import AdminManager
+from services.citation_fetcher import run_citation_fetcher_once
+from utils.document_db import get_documents_without_citations
+from utils.admin import AdminManager
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -65,7 +65,7 @@ async def fetch_citations_sync(request: Request, limit: Optional[int] = 10):
     admin_manager.require_admin(request, "synchronous citation fetch")
     
     try:
-        from ..services.citation_fetcher import CitationFetcher
+        from services.citation_fetcher import CitationFetcher
         
         fetcher = CitationFetcher(batch_size=limit)
         processed = await fetcher.fetch_citations_batch()
@@ -84,7 +84,7 @@ async def fetch_citations_sync(request: Request, limit: Optional[int] = 10):
 async def get_document_citation(document_id: int):
     """Get citation information for a specific document."""
     try:
-        from ..utils.document_db import get_db_connection
+        from utils.document_db import get_db_connection
         
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
