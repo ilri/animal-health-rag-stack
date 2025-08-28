@@ -9,6 +9,10 @@ class Config:
     MEMORY_SIMILARITY_THRESHOLD = float(os.environ.get("MEMORY_SIMILARITY_THRESHOLD", "0.95"))
     ENABLE_DIALOG_RETRIEVAL = os.environ.get("ENABLE_DIALOG_RETRIEVAL", "true").lower() == "true"
     
+    # Citation Configuration
+    ENABLE_ACADEMIC_CITATIONS = os.environ.get("ENABLE_ACADEMIC_CITATIONS", "true").lower() == "true"
+    CITATION_STYLE = os.environ.get("CITATION_STYLE", "apa").lower()  # apa, mla, chicago
+    
     # Enhanced QA Configuration
     ENABLE_ENHANCED_QA = os.environ.get("ENABLE_ENHANCED_QA", "true").lower() == "true"
     ENABLE_CHUNK_CLASSIFICATION = os.environ.get("ENABLE_CHUNK_CLASSIFICATION", "true").lower() == "true"
