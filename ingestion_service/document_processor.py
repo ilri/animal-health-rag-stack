@@ -9,10 +9,11 @@ from llama_index.core.node_parser import SentenceSplitter
 from config import CHUNK_SIZE, CHUNK_OVERLAP
 from file_processors import process_file
 from file_tracker import is_file_processed, mark_file_processed, log_processing_error
-from database import check_document_exists, store_chunks_and_embeddings
+from database import check_document_exists, store_document_and_chunks
 from embeddings import create_embeddings_batch
 from academic_processor import is_academic_paper, process_academic_paper
 from evaluators import ChunkQualityEvaluator
+from metadata_extractor import MetadataExtractor
 
 
 def process_document(file_path):
@@ -80,7 +81,19 @@ def process_document(file_path):
             mark_file_processed(file_path)
             return
         
-        # Create metadata
+        # Enhanced metadata extraction
+        metadata_extractor = MetadataExtractor()
+        
+        # Extract comprehensive metadata from content
+        enhanced_metadata = metadata_extractor.extract_metadata_from_text(content, file_name)
+        enhanced_metadata['extracted_at'] = datetime.now().isoformat()
+        
+        # Extract PDF metadata if applicable
+        if file_extension.lower() == '.pdf':
+            pdf_metadata = metadata_extractor.extract_metadata_from_pdf_properties(file_path)
+            enhanced_metadata.update(pdf_metadata)
+        
+        # Create comprehensive metadata
         metadata = {
             "source": file_name,
             "extension": file_extension,
@@ -90,7 +103,8 @@ def process_document(file_path):
             "content_hash": content_hash,
             "processed_at": datetime.now().isoformat(),
             "academic_processing": use_academic_processing,
-            "structured_data": structured_data if use_academic_processing else None
+            "structured_data": structured_data if use_academic_processing else None,
+            **enhanced_metadata  # Include all enhanced metadata
         }
         
         # Create document and chunk it
@@ -123,7 +137,7 @@ def process_document(file_path):
         embeddings = create_embeddings_batch(chunk_texts)
         
         # Store chunks, embeddings and evaluations in database
-        stored_count = store_chunks_and_embeddings(
+        stored_count = store_document_and_chunks(
             chunk_texts,
             embeddings,
             metadata,

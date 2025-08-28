@@ -1,5 +1,6 @@
 """Database operations for the ingestion service."""
 
+import os
 import psycopg2
 from psycopg2.extras import execute_values
 import json
@@ -17,16 +18,16 @@ def check_document_exists(content_hash):
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT COUNT(*) FROM document_chunks 
-                WHERE source_metadata->>'content_hash' = %s
+                SELECT COUNT(*) FROM document 
+                WHERE content_hash = %s
                 """, 
                 (content_hash,)
             )
             return cursor.fetchone()[0] > 0
 
 
-def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata, *, chunk_evaluations=None):
-    """Store document chunks and their embeddings in the database.
+def store_document_and_chunks(chunks_data, embeddings_data, metadata, *, chunk_evaluations=None):
+    """Store document and its chunks with embeddings in the database.
     
     Args:
         chunks_data: List of text chunks
@@ -39,7 +40,41 @@ def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata, *, chunk
     """
     with get_db_connection() as conn:
         with conn.cursor() as cursor:
-            # Insert chunks and get IDs
+            # First, insert into document table
+            file_size = None
+            if 'path' in metadata and os.path.exists(metadata['path']):
+                file_size = os.path.getsize(metadata['path'])
+            
+            # Extract DOI from filename if possible
+            doi = None
+            if 'doi' in metadata:
+                doi = metadata['doi']
+            elif 'source' in metadata:
+                from metadata_extractor import MetadataExtractor
+                extractor = MetadataExtractor()
+                doi = extractor.extract_doi_from_filename(metadata['source'])
+            
+            cursor.execute(
+                """
+                INSERT INTO document (
+                    filename, file_path, content_hash, file_size, 
+                    doi, document_type, citation_fetched
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s) 
+                RETURNING id
+                """,
+                (
+                    metadata.get('source', ''),
+                    metadata.get('path', ''),
+                    metadata.get('content_hash'),
+                    file_size,
+                    doi,
+                    metadata.get('extension', '').lstrip('.'),
+                    False  # Will be updated when citation is fetched
+                )
+            )
+            document_id = cursor.fetchone()[0]
+            
+            # Insert chunks and reference the document
             chunk_ids = []
             for chunk_text in chunks_data:
                 # Ensure chunk text is clean
@@ -49,8 +84,11 @@ def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata, *, chunk
                     continue
                 
                 cursor.execute(
-                    "INSERT INTO document_chunks (text_content, source_metadata) VALUES (%s, %s) RETURNING id",
-                    (clean_text, json.dumps(metadata))
+                    """
+                    INSERT INTO document_chunks (text_content, source_metadata, document_id) 
+                    VALUES (%s, %s, %s) RETURNING id
+                    """,
+                    (clean_text, json.dumps(metadata), document_id)
                 )
                 chunk_id = cursor.fetchone()[0]
                 chunk_ids.append(chunk_id)
@@ -89,3 +127,9 @@ def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata, *, chunk
             
             conn.commit()
             return len(chunk_ids)
+
+
+# Legacy function for backward compatibility
+def store_chunks_and_embeddings(chunks_data, embeddings_data, metadata, *, chunk_evaluations=None):
+    """Legacy wrapper - use store_document_and_chunks instead."""
+    return store_document_and_chunks(chunks_data, embeddings_data, metadata, chunk_evaluations=chunk_evaluations)

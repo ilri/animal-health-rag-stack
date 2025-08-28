@@ -49,11 +49,19 @@
 
       <div v-if="results.references && results.references.length > 0" class="references-section">
         <h3>References</h3>
-        <ul class="references-list">
-          <li v-for="(ref, index) in results.references" :key="index">
-            [{{ index + 1 }}] {{ ref }}
+        <ol class="references-list">
+          <li v-for="(ref, index) in results.references" :key="index" class="reference-item">
+            <span class="reference-text">{{ ref }}</span>
+            <button 
+              v-if="isValidUrl(ref)" 
+              @click="openReference(ref)" 
+              class="reference-link-btn"
+              title="Open reference link"
+            >
+              🔗
+            </button>
           </li>
-        </ul>
+        </ol>
       </div>
 
       <div v-if="results.chunks && results.chunks.length > 0" class="chunks-section">
@@ -121,6 +129,29 @@ export default {
     const formatAnswer = (answer) => {
       return marked(answer)
     }
+    
+    const isValidUrl = (ref) => {
+      // Check if reference contains a URL (DOI links, https links)
+      const urlPattern = /(https?:\/\/[^\s]+|doi:10\.\d+\/[^\s]+)/i
+      return urlPattern.test(ref)
+    }
+    
+    const openReference = (ref) => {
+      // Extract URL from reference text
+      const urlMatch = ref.match(/(https?:\/\/[^\s]+)/i)
+      const doiMatch = ref.match(/doi:(10\.\d+\/[^\s]+)/i)
+      
+      let url = null
+      if (urlMatch) {
+        url = urlMatch[1]
+      } else if (doiMatch) {
+        url = `https://doi.org/${doiMatch[1]}`
+      }
+      
+      if (url) {
+        window.open(url, '_blank')
+      }
+    }
 
     const handleRating = async (rating) => {
       userRating.value = rating
@@ -156,6 +187,8 @@ export default {
       userRating,
       submitQuery,
       formatAnswer,
+      isValidUrl,
+      openReference,
       handleRating
     }
   }
@@ -294,19 +327,51 @@ export default {
 }
 
 .references-list {
-  list-style: none;
-  padding: 0;
+  list-style: decimal;
+  padding-left: 1.2rem;
 }
 
-.references-list li {
-  padding: 8px 0;
-  color: #666;
-  font-size: 14px;
+.reference-item {
+  padding: 12px 0;
   border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  line-height: 1.6;
 }
 
-.references-list li:last-child {
+.reference-item:last-child {
   border-bottom: none;
+}
+
+.reference-text {
+  flex: 1;
+  margin-right: 10px;
+  font-size: 14px;
+  color: #333;
+  font-style: italic;
+}
+
+.reference-link-btn {
+  background: none;
+  border: 1px solid #007bff;
+  color: #007bff;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 12px;
+  min-width: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.reference-link-btn:hover {
+  background-color: #007bff;
+  color: white;
+  transform: scale(1.1);
 }
 
 .chunks-section {
