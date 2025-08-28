@@ -90,11 +90,8 @@ async def get_document_citation(document_id: int):
             with conn.cursor() as cursor:
                 cursor.execute(
                     """
-                    SELECT id, filename, doi, title, authors, journal, 
-                           publication_year, volume, issue, pages, publisher,
-                           citation_apa, citation_mla, citation_chicago, 
-                           citation_fetched, citation_fetch_attempted_at, 
-                           citation_fetch_error
+                    SELECT id, filename, doi, reference, citation_fetched, 
+                           citation_fetch_attempted_at, citation_fetch_error
                     FROM document 
                     WHERE id = %s
                     """,
@@ -107,14 +104,6 @@ async def get_document_citation(document_id: int):
                 
                 columns = [desc[0] for desc in cursor.description]
                 document = dict(zip(columns, row))
-                
-                # Parse JSON fields
-                if document.get('authors'):
-                    import json
-                    try:
-                        document['authors'] = json.loads(document['authors'])
-                    except:
-                        pass
                 
                 return {
                     "status": "success",
