@@ -153,7 +153,7 @@ class CitationService:
         
         try:
             # Use doi.org citation API for APA format
-            url = f"https://citation.crossref.org/format?doi={clean_doi}&style=apa&lang=en-US"
+            url = f"https://citation.doi.org/format?doi={clean_doi}&style=apa&lang=en-US"
             headers = {'Accept': 'text/plain'}
             
             async with self.session.get(url, headers=headers, timeout=10) as response:
