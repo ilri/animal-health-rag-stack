@@ -7,7 +7,7 @@ class AdminManager:
     
     def __init__(self):
         # Allow admin mode to be enabled via environment variable
-        self.admin_enabled = os.getenv('ENABLE_ADMIN_MODE', 'false').lower() == 'true'
+        self.admin_enabled = os.getenv('ENABLE_ADMIN_MODE', 'true').lower() == 'true'
         # Admin password/token (optional for additional security)
         self.admin_token = os.getenv('ADMIN_TOKEN', '')
     
