@@ -47,16 +47,7 @@ class QueryService:
                 """, (embedding_str, embedding_str, max_results))
                 
                 results = cursor.fetchall()
-                # Convert tuples to dictionaries for consistent access
-                return [
-                    {
-                        "id": row[0],
-                        "text_content": row[1],
-                        "source_metadata": row[2],
-                        "similarity": row[3]
-                    }
-                    for row in results
-                ]
+                return results
     
     async def generate_academic_references(self, chunks: List[Dict], style: str = None) -> List[str]:
         """Generate proper academic citations for chunks using DOI-only approach."""
@@ -65,6 +56,18 @@ class QueryService:
             
         references = []
         processed_sources = set()
+        
+        # Convert chunks to dictionaries if they're tuples (from vector_search)
+        if chunks and isinstance(chunks[0], tuple):
+            chunks = [
+                {
+                    "id": chunk[0],
+                    "text_content": chunk[1],
+                    "source_metadata": chunk[2],
+                    "similarity": chunk[3]
+                }
+                for chunk in chunks
+            ]
         
         # Get chunk IDs
         chunk_ids = [chunk['id'] for chunk in chunks]
@@ -267,6 +270,20 @@ class QueryService:
         # Perform vector search
         chunks = self.vector_search(query_embedding, max_results)
         
+        # Convert chunks to dictionaries if they're tuples
+        if chunks and isinstance(chunks[0], tuple):
+            chunks_dict = [
+                {
+                    "id": chunk[0],
+                    "text_content": chunk[1],
+                    "source_metadata": chunk[2],
+                    "similarity": chunk[3]
+                }
+                for chunk in chunks
+            ]
+        else:
+            chunks_dict = chunks
+        
         # Load graph data and enhance results
         entities, communities = self.graph_service.enhance_with_graph(chunks)
         
@@ -289,7 +306,7 @@ class QueryService:
                     "source": (json.loads(chunk["source_metadata"]) if isinstance(chunk["source_metadata"], str) 
                              else chunk["source_metadata"]).get("source", "Unknown source"),
                     "similarity": float(chunk["similarity"])
-                } for chunk in chunks
+                } for chunk in chunks_dict
             ],
             "entities": entities[:10],  # Top 10 entities
             "communities": communities[:5],  # Top 5 communities
