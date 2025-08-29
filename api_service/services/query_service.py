@@ -107,12 +107,28 @@ class QueryService:
                         if citation:
                             formatted_citation = citation
             
-            # Add citation to references (only if we have a proper DOI-based citation)
+            # Add citation to references with priority: reference > DOI > filename
             if formatted_citation and formatted_citation != "Unknown source":
                 references.append(formatted_citation)
             else:
-                # No fallback - if no DOI or DOI lookup failed, use filename
-                references.append(source_filename)
+                # Fallback hierarchy: DOI > filename
+                fallback_reference = None
+                
+                # Try to get DOI from document table
+                if chunk_id in documents_by_chunk:
+                    doc = documents_by_chunk[chunk_id]
+                    if doc.get('doi'):
+                        fallback_reference = f"https://dx.doi.org/{doc['doi']}"
+                
+                # If no DOI, extract from filename
+                if not fallback_reference:
+                    async with self.citation_service as citation_service:
+                        extracted_doi = citation_service.extract_doi_from_filename(source_filename)
+                        if extracted_doi:
+                            fallback_reference = f"https://dx.doi.org/{extracted_doi}"
+                
+                # Final fallback to filename
+                references.append(fallback_reference or source_filename)
         
         return references
     
