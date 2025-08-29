@@ -105,7 +105,7 @@ class QueryService:
                     async with self.citation_service as citation_service:
                         citation = await citation_service.fetch_citation_from_doi(doi)
                         if citation:
-                            formatted_citation = citation
+                            formatted_citation = citation + f"\nhttps://dx.doi.org/{doc['doi']}"
             
             # Add citation to references with priority: reference > DOI > filename
             if formatted_citation and formatted_citation != "Unknown source":
