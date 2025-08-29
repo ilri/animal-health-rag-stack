@@ -92,17 +92,8 @@ async def process_query(query_data: Query):
             use_haiku_verification=query_data.use_haiku_verification
         )
         
-        # Extract references from chunks
-        references = []
-        for chunk in selected_chunks:
-            # Handle source_metadata (jsonb column returns dict, not string)
-            if isinstance(chunk['source_metadata'], str):
-                metadata = json.loads(chunk['source_metadata'])
-            else:
-                metadata = chunk['source_metadata']
-            source = metadata.get('source', 'Unknown source')
-            if source not in references:
-                references.append(source)
+        # Generate proper academic references using the query service
+        references = await query_service.generate_academic_references(selected_chunks)
         
         # Save to memory
         memory_id = memory_service.save_to_memory(

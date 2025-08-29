@@ -127,38 +127,13 @@ class QueryService:
         # Full context for the model
         full_context = chunks_context + entities_context + communities_context
         
-        # Generate references (academic citations or fallback to filenames)
-        if use_academic_citations and Config.ENABLE_ACADEMIC_CITATIONS:
-            try:
-                references = await self.generate_academic_references(chunks)
-            except Exception as e:
-                logging.error(f"Error generating academic citations, attempting DOI extraction: {e}")
-                # Fallback to DOI links only (no filenames)
-                references = []
-                processed_documents = set()
-                
-                # Get unique document IDs from chunks
-                document_ids = list(set(chunk.get('document_id') for chunk in chunks if chunk.get('document_id')))
-                
-                # Get document metadata
-                from utils.document_db import get_documents_by_ids
-                documents_by_id = get_documents_by_ids(document_ids) if document_ids else {}
-                
-                for chunk in chunks:
-                    document_id = chunk.get('document_id')
-                    
-                    # Skip if no document_id or already processed
-                    if not document_id or document_id in processed_documents:
-                        continue
-                    processed_documents.add(document_id)
-                    
-                    # Try to get DOI from document table
-                    if document_id in documents_by_id:
-                        doc = documents_by_id[document_id]
-                        if doc.get('doi'):
-                            references.append(f"https://dx.doi.org/{doc['doi']}")
-        else:
-            # Non-academic mode: Try to get DOI links from document table
+        # Generate references (academic citations or fallback to doi)
+        # if use_academic_citations and Config.ENABLE_ACADEMIC_CITATIONS:
+        try:
+            references = await self.generate_academic_references(chunks)
+        except Exception as e:
+            logging.error(f"Error generating academic citations, attempting DOI extraction: {e}")
+            # Fallback to DOI links only (no filenames)
             references = []
             processed_documents = set()
             
@@ -182,6 +157,31 @@ class QueryService:
                     doc = documents_by_id[document_id]
                     if doc.get('doi'):
                         references.append(f"https://dx.doi.org/{doc['doi']}")
+        # else:
+        #     # Non-academic mode: Try to get DOI links from document table
+        #     references = []
+        #     processed_documents = set()
+            
+        #     # Get unique document IDs from chunks
+        #     document_ids = list(set(chunk.get('document_id') for chunk in chunks if chunk.get('document_id')))
+            
+        #     # Get document metadata
+        #     from utils.document_db import get_documents_by_ids
+        #     documents_by_id = get_documents_by_ids(document_ids) if document_ids else {}
+            
+        #     for chunk in chunks:
+        #         document_id = chunk.get('document_id')
+                
+        #         # Skip if no document_id or already processed
+        #         if not document_id or document_id in processed_documents:
+        #             continue
+        #         processed_documents.add(document_id)
+                
+        #         # Try to get DOI from document table
+        #         if document_id in documents_by_id:
+        #             doc = documents_by_id[document_id]
+        #             if doc.get('doi'):
+        #                 references.append(f"https://dx.doi.org/{doc['doi']}")
         
         # Generate answer with OpenAI
         prompt = f"""
