@@ -131,6 +131,32 @@ def get_documents_for_chunks(chunk_ids: List[int]) -> Dict[int, Dict[str, Any]]:
             return results
 
 
+def get_documents_by_ids(document_ids: List[int]) -> Dict[int, Dict[str, Any]]:
+    """Get document metadata for multiple document IDs."""
+    if not document_ids:
+        return {}
+    
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT id, file_path, doi, reference, citation_fetched
+                FROM document
+                WHERE id = ANY(%s)
+                """,
+                (document_ids,)
+            )
+            
+            results = {}
+            columns = [desc[0] for desc in cursor.description]
+            for row in cursor.fetchall():
+                row_dict = dict(zip(columns, row))
+                doc_id = row_dict['id']
+                results[doc_id] = row_dict
+            
+            return results
+
+
 def get_citation_for_source(source_filename: str) -> Optional[str]:
     """Get formatted citation for a source filename."""
     with get_db_connection() as conn:

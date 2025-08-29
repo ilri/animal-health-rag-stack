@@ -1,11 +1,12 @@
 import json
+import logging
 from typing import List, Dict, Any, Optional
 from openai import OpenAI
 from utils import get_db_connection, Config
 from .memory_service import MemoryService
 from .graph_service import GraphService
 from .citation_service import CitationService, CitationMetadata
-from utils.document_db import get_documents_for_chunks, get_citation_for_source
+from utils.document_db import get_documents_by_ids, get_citation_for_source
 # from .ragas_service import RagasService  # Temporarily disabled due to version conflict
 
 class QueryService:
@@ -36,6 +37,7 @@ class QueryService:
                         dc.id, 
                         dc.text_content, 
                         dc.source_metadata,
+                        dc.document_id,
                         1 - (ce.embedding_vector <=> %s::vector) as similarity
                     FROM 
                         chunk_embeddings ce
@@ -55,7 +57,7 @@ class QueryService:
             style = Config.CITATION_STYLE
             
         references = []
-        processed_sources = set()
+        processed_documents = set()
         
         # Convert chunks to dictionaries if they're tuples (from vector_search)
         if chunks and isinstance(chunks[0], tuple):
@@ -64,84 +66,38 @@ class QueryService:
                     "id": chunk[0],
                     "text_content": chunk[1],
                     "source_metadata": chunk[2],
-                    "similarity": chunk[3]
+                    "document_id": chunk[3],
+                    "similarity": chunk[4]
                 }
                 for chunk in chunks
             ]
         
-        # Get chunk IDs
-        chunk_ids = [chunk['id'] for chunk in chunks]
+        # Get unique document IDs
+        document_ids = list(set(chunk.get('document_id') for chunk in chunks if chunk.get('document_id')))
         
-        # Get document metadata for all chunks at once
-        documents_by_chunk = get_documents_for_chunks(chunk_ids)
+        # Get document metadata for all documents at once
+        from utils.document_db import get_documents_by_ids
+        documents_by_id = get_documents_by_ids(document_ids) if document_ids else {}
         
         for chunk in chunks:
-            chunk_id = chunk['id']
+            document_id = chunk.get('document_id')
             
-            # Get source_metadata for filename
-            if isinstance(chunk['source_metadata'], str):
-                metadata = json.loads(chunk['source_metadata'])
-            else:
-                metadata = chunk['source_metadata']
-            
-            source_filename = metadata.get('source', 'Unknown source')
-            
-            # Skip if already processed this source
-            if source_filename in processed_sources:
+            # Skip if no document_id or already processed
+            if not document_id or document_id in processed_documents:
                 continue
-            processed_sources.add(source_filename)
+            processed_documents.add(document_id)
             
-            formatted_citation = None
-            
-            # Only use document table citations that have been fetched via DOI
-            if chunk_id in documents_by_chunk:
-                doc = documents_by_chunk[chunk_id]
-                if doc['citation_fetched'] and doc.get('doi') and doc.get('reference'):
-                    # Use pre-fetched DOI-based citation (APA format from doi.org)
-                    formatted_citation = doc['reference']
-            
-            # If no cached citation, perform real-time DOI lookup
-            if not formatted_citation:
-                # Get DOI from document table or extract from filename
-                doi = None
-                if chunk_id in documents_by_chunk:
-                    doi = documents_by_chunk[chunk_id].get('doi')
+            # Get document from our fetched documents
+            if document_id in documents_by_id:
+                doc = documents_by_id[document_id]
                 
-                if not doi:
-                    # Extract DOI from filename using archive pattern
-                    async with self.citation_service as citation_service:
-                        doi = citation_service.extract_doi_from_filename(source_filename)
-                
-                # Only proceed if we have a valid DOI
-                if doi:
-                    async with self.citation_service as citation_service:
-                        citation = await citation_service.fetch_citation_from_doi(doi)
-                        if citation:
-                            formatted_citation = citation + f"\nhttps://dx.doi.org/{doc['doi']}"
-            
-            # Add citation to references with priority: reference > DOI > filename
-            if formatted_citation and formatted_citation != "Unknown source":
-                references.append(formatted_citation)
-            else:
-                # Fallback hierarchy: DOI > filename
-                fallback_reference = None
-                
-                # Try to get DOI from document table
-                if chunk_id in documents_by_chunk:
-                    doc = documents_by_chunk[chunk_id]
-                    if doc.get('doi'):
-                        fallback_reference = f"https://dx.doi.org/{doc['doi']}"
-                
-                # If no DOI, extract from filename
-                if not fallback_reference:
-                    async with self.citation_service as citation_service:
-                        extracted_doi = citation_service.extract_doi_from_filename(source_filename)
-                        if extracted_doi:
-                            fallback_reference = f"https://dx.doi.org/{extracted_doi}"
-                
-                # Only add if we have a valid DOI reference
-                if fallback_reference:
-                    references.append(fallback_reference)
+                # Priority 1: Use pre-fetched academic citation
+                if doc.get('citation_fetched') and doc.get('reference'):
+                    references.append(doc['reference'])
+                # Priority 2: Use DOI link if available
+                elif doc.get('doi'):
+                    references.append(f"https://dx.doi.org/{doc['doi']}")
+                # No fallback to filename - skip if no citation or DOI
         
         return references
     
@@ -176,83 +132,56 @@ class QueryService:
             try:
                 references = await self.generate_academic_references(chunks)
             except Exception as e:
-                print(f"Error generating academic citations, attempting DOI extraction: {e}")
+                logging.error(f"Error generating academic citations, attempting DOI extraction: {e}")
                 # Fallback to DOI links only (no filenames)
                 references = []
-                processed_sources = set()
+                processed_documents = set()
                 
-                # Get chunk IDs
-                chunk_ids = [chunk['id'] for chunk in chunks]
+                # Get unique document IDs from chunks
+                document_ids = list(set(chunk.get('document_id') for chunk in chunks if chunk.get('document_id')))
                 
-                # Get document metadata for all chunks
-                documents_by_chunk = get_documents_for_chunks(chunk_ids)
+                # Get document metadata
+                from utils.document_db import get_documents_by_ids
+                documents_by_id = get_documents_by_ids(document_ids) if document_ids else {}
                 
                 for chunk in chunks:
-                    chunk_id = chunk['id']
+                    document_id = chunk.get('document_id')
                     
-                    # Get source_metadata for tracking duplicates
-                    if isinstance(chunk['source_metadata'], str):
-                        metadata = json.loads(chunk['source_metadata'])
-                    else:
-                        metadata = chunk['source_metadata']
-                    
-                    source_filename = metadata.get('source', 'Unknown source')
-                    
-                    # Skip if already processed this source
-                    if source_filename in processed_sources:
+                    # Skip if no document_id or already processed
+                    if not document_id or document_id in processed_documents:
                         continue
-                    processed_sources.add(source_filename)
+                    processed_documents.add(document_id)
                     
                     # Try to get DOI from document table
-                    if chunk_id in documents_by_chunk:
-                        doc = documents_by_chunk[chunk_id]
+                    if document_id in documents_by_id:
+                        doc = documents_by_id[document_id]
                         if doc.get('doi'):
                             references.append(f"https://dx.doi.org/{doc['doi']}")
-                            continue
-                    
-                    # Try to extract DOI from filename
-                    doi = self.citation_service.extract_doi_from_filename(source_filename)
-                    if doi:
-                        references.append(f"https://dx.doi.org/{doi}")
         else:
             # Non-academic mode: Try to get DOI links from document table
             references = []
-            processed_sources = set()
+            processed_documents = set()
             
-            # Get chunk IDs
-            chunk_ids = [chunk['id'] for chunk in chunks]
+            # Get unique document IDs from chunks
+            document_ids = list(set(chunk.get('document_id') for chunk in chunks if chunk.get('document_id')))
             
-            # Get document metadata for all chunks
-            documents_by_chunk = get_documents_for_chunks(chunk_ids)
+            # Get document metadata
+            from utils.document_db import get_documents_by_ids
+            documents_by_id = get_documents_by_ids(document_ids) if document_ids else {}
             
             for chunk in chunks:
-                chunk_id = chunk['id']
+                document_id = chunk.get('document_id')
                 
-                # Get source_metadata for tracking duplicates
-                if isinstance(chunk['source_metadata'], str):
-                    metadata = json.loads(chunk['source_metadata'])
-                else:
-                    metadata = chunk['source_metadata']
-                
-                source_filename = metadata.get('source', 'Unknown source')
-                
-                # Skip if already processed this source
-                if source_filename in processed_sources:
+                # Skip if no document_id or already processed
+                if not document_id or document_id in processed_documents:
                     continue
-                processed_sources.add(source_filename)
+                processed_documents.add(document_id)
                 
                 # Try to get DOI from document table
-                if chunk_id in documents_by_chunk:
-                    doc = documents_by_chunk[chunk_id]
+                if document_id in documents_by_id:
+                    doc = documents_by_id[document_id]
                     if doc.get('doi'):
                         references.append(f"https://dx.doi.org/{doc['doi']}")
-                        continue
-                
-                # Try to extract DOI from filename
-                async with self.citation_service as citation_service:
-                    extracted_doi = citation_service.extract_doi_from_filename(source_filename)
-                    if extracted_doi:
-                        references.append(f"https://dx.doi.org/{extracted_doi}")
         
         # Generate answer with OpenAI
         prompt = f"""
@@ -333,7 +262,8 @@ class QueryService:
                     "id": chunk[0],
                     "text_content": chunk[1],
                     "source_metadata": chunk[2],
-                    "similarity": chunk[3]
+                    "document_id": chunk[3],
+                    "similarity": chunk[4]
                 }
                 for chunk in chunks
             ]
