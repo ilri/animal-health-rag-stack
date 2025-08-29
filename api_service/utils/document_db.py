@@ -113,7 +113,7 @@ def get_documents_for_chunks(chunk_ids: List[int]) -> Dict[int, Dict[str, Any]]:
         with conn.cursor() as cursor:
             cursor.execute(
                 """
-                SELECT dc.id as chunk_id, d.id, d.filename, d.doi, d.reference, d.citation_fetched
+                SELECT dc.id as chunk_id, d.id, d.file_path, d.doi, d.reference, d.citation_fetched
                 FROM document d
                 JOIN document_chunks dc ON dc.document_id = d.id
                 WHERE dc.id = ANY(%s)
