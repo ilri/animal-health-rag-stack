@@ -248,6 +248,11 @@ Background documents: "{context}"
 
 Answer this specific question based only on the documents above. Keep the answer focused and concise:
 
+1. Base your answer ONLY on the provided documents
+2. Include specific citations using [chunk1], [chunk2] format when referencing sources
+3. If information is insufficient, acknowledge the limitations
+4. Provide a comprehensive yet concise response (2-3 paragraphs maximum)
+5. Make connections between different pieces of information where relevant
 Question: "{subquestion}"
 Answer:""".strip()
             
