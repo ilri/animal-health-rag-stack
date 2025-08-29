@@ -47,7 +47,16 @@ class QueryService:
                 """, (embedding_str, embedding_str, max_results))
                 
                 results = cursor.fetchall()
-                return results
+                # Convert tuples to dictionaries for consistent access
+                return [
+                    {
+                        "id": row[0],
+                        "text_content": row[1],
+                        "source_metadata": row[2],
+                        "similarity": row[3]
+                    }
+                    for row in results
+                ]
     
     async def generate_academic_references(self, chunks: List[Dict], style: str = None) -> List[str]:
         """Generate proper academic citations for chunks using DOI-only approach."""
