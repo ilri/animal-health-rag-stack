@@ -139,8 +139,9 @@ class QueryService:
                         if extracted_doi:
                             fallback_reference = f"https://dx.doi.org/{extracted_doi}"
                 
-                # Final fallback to filename
-                references.append(fallback_reference or source_filename)
+                # Only add if we have a valid DOI reference
+                if fallback_reference:
+                    references.append(fallback_reference)
         
         return references
     
@@ -187,16 +188,44 @@ class QueryService:
                     if source not in references:
                         references.append(source)
         else:
-            # Original filename-based references
+            # Non-academic mode: Try to get DOI links from document table
             references = []
+            processed_sources = set()
+            
+            # Get chunk IDs
+            chunk_ids = [chunk['id'] for chunk in chunks]
+            
+            # Get document metadata for all chunks
+            documents_by_chunk = get_documents_for_chunks(chunk_ids)
+            
             for chunk in chunks:
+                chunk_id = chunk['id']
+                
+                # Get source_metadata for tracking duplicates
                 if isinstance(chunk['source_metadata'], str):
                     metadata = json.loads(chunk['source_metadata'])
                 else:
                     metadata = chunk['source_metadata']
-                source = metadata.get('source', 'Unknown source')
-                if source not in references:
-                    references.append(source)
+                
+                source_filename = metadata.get('source', 'Unknown source')
+                
+                # Skip if already processed this source
+                if source_filename in processed_sources:
+                    continue
+                processed_sources.add(source_filename)
+                
+                # Try to get DOI from document table
+                if chunk_id in documents_by_chunk:
+                    doc = documents_by_chunk[chunk_id]
+                    if doc.get('doi'):
+                        references.append(f"https://dx.doi.org/{doc['doi']}")
+                        continue
+                
+                # Try to extract DOI from filename
+                async with self.citation_service as citation_service:
+                    extracted_doi = citation_service.extract_doi_from_filename(source_filename)
+                    if extracted_doi:
+                        references.append(f"https://dx.doi.org/{extracted_doi}")
         
         # Generate answer with OpenAI
         prompt = f"""
