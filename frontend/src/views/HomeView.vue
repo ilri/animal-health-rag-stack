@@ -59,6 +59,13 @@
                 class="chunk-reference-link"
                 v-html="formatChunkReference(getChunkReference(index))"
               ></span>
+              <span 
+                v-else-if="chunk.doi" 
+                @click="openDoi(chunk.doi)" 
+                class="chunk-doi-link"
+              >
+                {{ chunk.doi }}
+              </span>
               <span v-else class="chunk-no-reference">Document excerpt</span>
             </div>
             <span class="chunk-similarity">{{ (chunk.similarity * 100).toFixed(1) }}% match</span>
@@ -155,6 +162,11 @@ export default {
       return null
     }
     
+    const openDoi = (doi) => {
+      const url = doi.startsWith('http') ? doi : `https://dx.doi.org/${doi}`
+      window.open(url, '_blank')
+    }
+    
     const formatChunkReference = (reference) => {
       if (!reference) return ''
       
@@ -217,7 +229,8 @@ export default {
       openReference,
       handleRating,
       getChunkReference,
-      formatChunkReference
+      formatChunkReference,
+      openDoi
     }
   }
 }
@@ -372,6 +385,20 @@ export default {
   color: #666;
   font-size: 14px;
   font-style: italic;
+}
+
+.chunk-doi-link {
+  cursor: pointer;
+  color: #28a745;
+  text-decoration: none;
+  font-size: 14px;
+  font-family: monospace;
+  transition: color 0.2s;
+}
+
+.chunk-doi-link:hover {
+  color: #1e7e34;
+  text-decoration: underline;
 }
 
 .reference-link {

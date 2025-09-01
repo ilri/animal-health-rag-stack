@@ -281,6 +281,10 @@ class QueryService:
             query, query_embedding, answer, references, chunks, entities, communities
         )
         
+        # Get document metadata for chunks to include DOI info
+        document_ids = list(set(chunk.get('document_id') for chunk in chunks_dict if chunk.get('document_id')))
+        documents_by_id = get_documents_by_ids(document_ids) if document_ids else {}
+        
         # Format response
         response = {
             "query": query,
@@ -291,7 +295,8 @@ class QueryService:
                     "text": chunk["text_content"],
                     "source": (json.loads(chunk["source_metadata"]) if isinstance(chunk["source_metadata"], str) 
                              else chunk["source_metadata"]).get("source", "Unknown source"),
-                    "similarity": float(chunk["similarity"])
+                    "similarity": float(chunk["similarity"]),
+                    "doi": documents_by_id.get(chunk.get('document_id'), {}).get('doi', None)
                 } for chunk in chunks_dict
             ],
             "entities": entities[:10],  # Top 10 entities
