@@ -5,7 +5,39 @@ All notable changes to the WriteHere GraphRAG project will be documented in this
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Latest] - 2025-06-15
+## [Latest] - 2025-09-01
+
+### Changed
+- **Enhanced UI/UX for Document References**: Major interface improvements for better citation navigation
+  - **Reference Integration**: Removed separate References section and integrated references directly into chunk headers
+  - **Improved Typography**: Only article titles in references are now italicized, with authors/journal in normal font
+  - **Smart Citation Pattern Recognition**: Implemented regex to correctly identify titles in academic citations using pattern `(year). Title. Journal`
+  - **Interactive Navigation**: Made in-text `[chunk X]` citations clickable with smooth scrolling to corresponding chunks
+  - **Clickable References**: References in chunk headers are now directly clickable (removed separate 🔗 buttons)
+  - **DOI Support**: When chunks lack formal references, clickable DOI links are displayed in green monospace font
+  - **Clean Chunk Titles**: Removed PDF filename clutter from chunk headers
+  - **Reordered Layout**: Document chunks now appear first with integrated references, eliminating redundant sections
+
+### Technical Implementation
+- **Backend Changes**:
+  - Modified `api_service/services/query_service.py` to include DOI information in chunk responses
+  - Added document metadata fetching to provide DOI data when formal citations aren't available
+- **Frontend Changes**:  
+  - Updated `frontend/src/views/HomeView.vue` with new layout and interaction patterns
+  - Added `formatChunkReference()` function with academic citation parsing
+  - Added `openDoi()` function for DOI link handling
+  - Implemented clickable in-text citations with smooth scrolling behavior
+  - Added CSS styling for chunk references, DOI links, and citation interactions
+
+### User Experience Improvements
+- **Streamlined Navigation**: Users can click citations in answers to jump directly to source chunks
+- **Cleaner Interface**: Eliminated duplicate reference information and filename noise
+- **Better Academic Format**: References now follow proper academic typography conventions
+- **Enhanced Accessibility**: All references and citations are now interactive and clearly labeled with `[chunk X]` prefixes
+
+---
+
+## [Previous] - 2025-06-15
 
 ### Added
 - **Advanced QA System**: Implemented comprehensive question-answering capabilities as the default query processing
