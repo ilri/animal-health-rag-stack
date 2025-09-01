@@ -47,28 +47,20 @@
         </span>
       </div>
 
-      <div v-if="results.references && results.references.length > 0" class="references-section">
-        <h3>References</h3>
-        <ol class="references-list">
-          <li v-for="(ref, index) in results.references" :key="index" class="reference-item">
-            <span class="reference-text">{{ ref }}</span>
-            <button 
-              v-if="isValidUrl(ref)" 
-              @click="openReference(ref)" 
-              class="reference-link-btn"
-              title="Open reference link"
-            >
-              🔗
-            </button>
-          </li>
-        </ol>
-      </div>
-
       <div v-if="results.chunks && results.chunks.length > 0" class="chunks-section">
         <h3>Relevant Document Chunks</h3>
-        <div v-for="chunk in results.chunks" :key="chunk.id" class="chunk-card">
+        <div v-for="(chunk, index) in results.chunks" :key="chunk.id" class="chunk-card" :id="`chunk-${index + 1}`">
           <div class="chunk-header">
-            <span class="chunk-source">{{ chunk.source }}</span>
+            <div class="chunk-title">
+              <span class="chunk-number">[chunk {{ index + 1 }}]</span>
+              <span 
+                v-if="getChunkReference(index)" 
+                @click="openReference(getChunkReference(index))" 
+                class="chunk-reference-link"
+                v-html="formatChunkReference(getChunkReference(index))"
+              ></span>
+              <span v-else class="chunk-no-reference">Document excerpt</span>
+            </div>
             <span class="chunk-similarity">{{ (chunk.similarity * 100).toFixed(1) }}% match</span>
           </div>
           <div class="chunk-text">{{ chunk.text }}</div>
@@ -127,7 +119,10 @@ export default {
     }
 
     const formatAnswer = (answer) => {
-      return marked(answer)
+      // Make [chunk X] citations clickable
+      let formattedAnswer = marked(answer)
+      formattedAnswer = formattedAnswer.replace(/\[chunk(\d+)\]/g, '<a href="#chunk-$1" class="chunk-citation-link" onclick="document.getElementById(\'chunk-$1\').scrollIntoView({behavior: \'smooth\'}); return false;">[chunk$1]</a>')
+      return formattedAnswer
     }
     
     const isValidUrl = (ref) => {
@@ -151,6 +146,37 @@ export default {
       if (url) {
         window.open(url, '_blank')
       }
+    }
+    
+    const getChunkReference = (index) => {
+      if (results.value && results.value.references && results.value.references[index]) {
+        return results.value.references[index]
+      }
+      return null
+    }
+    
+    const formatChunkReference = (reference) => {
+      if (!reference) return ''
+      
+      // Check if it's a URL (DOI link)
+      if (reference.startsWith('http')) {
+        return `<span class="reference-link">Link to paper</span>`
+      }
+      
+      // Parse academic citation: Author(s) (year). Title. Journal/Publication
+      // Title is between (year). and the next period
+      const titleMatch = reference.match(/(\(\d{4}\)\.)\s*([^.]+\.)\s*(.+)/)
+      
+      if (titleMatch) {
+        const beforeTitle = reference.substring(0, titleMatch.index + titleMatch[1].length + 1) // include space after (year).
+        const title = titleMatch[2].replace(/\.$/, '') // remove trailing period from title
+        const afterTitle = titleMatch[3]
+        
+        return `${beforeTitle}<em>${title}</em>. ${afterTitle}`
+      }
+      
+      // If no pattern matches, return as-is
+      return reference
     }
 
     const handleRating = async (rating) => {
@@ -189,7 +215,9 @@ export default {
       formatAnswer,
       isValidUrl,
       openReference,
-      handleRating
+      handleRating,
+      getChunkReference,
+      formatChunkReference
     }
   }
 }
@@ -313,65 +341,56 @@ export default {
   font-weight: 500;
 }
 
-.references-section {
-  background: white;
-  padding: 24px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  margin-bottom: 24px;
-}
-
-.references-section h3 {
-  color: #333;
-  margin-bottom: 16px;
-}
-
-.references-list {
-  list-style: decimal;
-  padding-left: 1.2rem;
-}
-
-.reference-item {
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+.chunk-title {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  line-height: 1.6;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.reference-item:last-child {
-  border-bottom: none;
-}
-
-.reference-text {
-  flex: 1;
-  margin-right: 10px;
+.chunk-number {
+  font-weight: 600;
+  color: #007bff;
   font-size: 14px;
-  color: #333;
+}
+
+.chunk-reference-link {
+  cursor: pointer;
+  color: #007bff;
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1.4;
+  transition: color 0.2s;
+}
+
+.chunk-reference-link:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.chunk-no-reference {
+  color: #666;
+  font-size: 14px;
   font-style: italic;
 }
 
-.reference-link-btn {
-  background: none;
-  border: 1px solid #007bff;
+.reference-link {
   color: #007bff;
-  border-radius: 4px;
-  padding: 4px 8px;
-  cursor: pointer;
-  font-size: 12px;
-  min-width: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-  text-decoration: none;
+  font-weight: 500;
 }
 
-.reference-link-btn:hover {
-  background-color: #007bff;
-  color: white;
-  transform: scale(1.1);
+.chunk-citation-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.chunk-citation-link:hover {
+  background-color: #e7f3ff;
+  text-decoration: none;
 }
 
 .chunks-section {
@@ -398,10 +417,12 @@ export default {
   margin-bottom: 12px;
 }
 
-.chunk-source {
-  font-weight: 600;
-  color: #007bff;
-  font-size: 14px;
+.chunk-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 16px;
 }
 
 .chunk-similarity {
