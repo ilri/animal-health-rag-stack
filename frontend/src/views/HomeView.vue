@@ -163,7 +163,7 @@ export default {
     }
     
     const openDoi = (doi) => {
-      const url = doi.startsWith('http') ? doi : `https://dx.doi.org/${doi}`
+      const url = doi.startsWith('http') ? doi : `https://doi.org/${doi}`
       window.open(url, '_blank')
     }
     
