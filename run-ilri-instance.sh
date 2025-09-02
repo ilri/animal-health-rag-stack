@@ -1,5 +1,4 @@
-#!/bin/bash
-# Run ILRI document instance alongside main instance (frontend is run outside Docker)
+#!/usr/bin/env bash
 
 set -euo pipefail
 
@@ -10,8 +9,7 @@ echo "- API: localhost:8001"
 echo "- Ingestion: localhost:5051"
 echo "- GROBID: localhost:8070"
 
-# Start only required services: db, grobid, api, ingestion
-docker compose -f docker-compose.yml up -d db-ilri grobid-ilri api-service-ilri ingestion-service-ilri
+docker compose -f docker-compose.yml up -d
 
 # Helpful checks
 echo ""
