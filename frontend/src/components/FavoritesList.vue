@@ -458,7 +458,7 @@ export default {
 .no-favorites-icon {
   font-size: 3rem;
   margin-bottom: 1rem;
-  color: #ffca28;
+  color: #dc3545;
 }
 
 .no-favorites p {
