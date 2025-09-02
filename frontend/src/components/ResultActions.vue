@@ -147,8 +147,9 @@
           <textarea 
             id="feedback" 
             v-model="feedbackText"
-            placeholder="What did you think of this answer?"
-            rows="3"
+            placeholder="What did you think of this answer? You may include your name so we can contact you for follow up."
+            rows="5"
+            cols="50"
           ></textarea>
         </div>
         
