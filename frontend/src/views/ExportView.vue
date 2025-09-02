@@ -72,7 +72,7 @@
             <span v-if="item.rating" class="preview-rating">
               {{ '★'.repeat(item.rating) }}{{ '☆'.repeat(5 - item.rating) }}
             </span>
-            <span v-if="item.is_favorite" class="favorite-badge">⭐ Favorite</span>
+            <span v-if="item.is_favorite" class="favorite-badge">❤ Favorite</span>
           </div>
           <div class="preview-query">
             <strong>Query:</strong> {{ item.query }}
@@ -369,8 +369,8 @@ export default {
 
 .favorite-badge {
   font-size: 12px;
-  background: #fff3cd;
-  color: #856404;
+  background: #ededed;
+  color: #dc3545;
   padding: 2px 6px;
   border-radius: 3px;
 }

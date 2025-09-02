@@ -65,7 +65,7 @@
           <div v-if="entry.feedback.text" class="feedback-text">
             <strong>Feedback:</strong> {{ entry.feedback.text }}
           </div>
-          <span v-if="entry.feedback.is_favorite" class="favorite-badge">⭐ Favorite</span>
+          <span v-if="entry.feedback.is_favorite" class="favorite-badge">❤ Favorite</span>
         </div>
         
         <div class="entry-actions">
@@ -371,8 +371,8 @@ export default {
 
 .favorite-badge {
   display: inline-block;
-  background: #fff3cd;
-  color: #856404;
+  background: #ededed;
+  color: #dc3545;
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 14px;
