@@ -3,10 +3,10 @@
     "version": "1.0.1",
     "private": true,
     "scripts": {
-      "start": "docker-compose up -d && yarn frontend:dev",
-      "frontend:dev": "cd frontend && yarn dev",
-      "frontend:build": "cd frontend && yarn build",
-      "frontend:serve": "cd frontend && yarn serve",
+      "start": "docker-compose up -d && npm run frontend:dev",
+      "frontend:dev": "cd frontend && npm run dev",
+      "frontend:build": "cd frontend && npm run build",
+      "frontend:serve": "cd frontend && npm run serve",
       "stop": "docker-compose down"
     }
   }

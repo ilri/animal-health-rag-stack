@@ -90,9 +90,9 @@ The application is fully containerized using Docker and consists of the followin
 
 1. Go to /frontend
 
-2. Run `$ yarn`
+2. Run `$ npm install`
 
-3. Run `$ yarn dev`
+3. Run `$ npm dev`
 
 4. Open browser to http://localhost:5173/
 
@@ -299,8 +299,8 @@ You have two options:
 - Run:
   ```bash
   cd frontend
-  yarn
-  yarn dev  # defaults to http://localhost:5173
+  npm install
+  npm dev  # defaults to http://localhost:5173
   ```
 - Update NGINX reverse proxy to route the site to Vite and API to the ILRI API:
   - File: `deployment/nginx/containerized-rag`
@@ -311,8 +311,8 @@ You have two options:
 - Build static assets:
   ```bash
   cd frontend
-  yarn
-  yarn build  # outputs to ./dist
+  npm install
+  npm build  # outputs to ./dist
   ```
 - Configure your NGINX server block to serve `frontend/dist` as root and proxy `/api/` to `http://localhost:8001/`.
   Example:
