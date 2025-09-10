@@ -137,6 +137,10 @@ body {
   }
 }
 
+.nav-brand img {
+  max-width: 40px;
+}
+
 .nav-tabs {
   display: flex;
   border-bottom: 1px solid var(--border-color);
